@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Explore eventos | FOMO{% endblock %}
+{% block content %}
+<div class="container-fomo page-content">
+  <div class="page-heading"><p class="eyebrow">Encontre sua próxima história</p><h1>Explore <span class="text-orange">eventos.</span></h1><p>Shows, encontros e experiências que combinam com você.</p></div>
+  <form class="panel filter-panel" method="get" action="{% url 'fomo:eventos' %}" role="search">
+    <div class="row g-3 align-items-end"><div class="col-12 col-lg-4"><label class="form-label" for="busca-eventos">O que você quer viver?</label><input class="form-control" id="busca-eventos" type="search" name="q" maxlength="150" value="{{ busca|default:'' }}" placeholder="Evento, artista ou local"></div>
+      <div class="col-12 col-sm-6 col-lg-3"><label class="form-label" for="filtro-categoria">Categoria</label><select class="form-select" id="filtro-categoria" name="categoria"><option value="">Todas as categorias</option>{% for categoria in categorias %}<option value="{{ categoria.slug }}" {% if categoria.slug == categoria_selecionada %}selected{% endif %}>{{ categoria.nome }}</option>{% endfor %}</select></div>
+      <div class="col-12 col-sm-6 col-lg-3"><label class="form-label" for="filtro-ordem">Ordenar por</label><select class="form-select" id="filtro-ordem" name="ordenar"><option value="data" {% if ordem == 'data' %}selected{% endif %}>Mais próximos</option><option value="menor_preco" {% if ordem == 'menor_preco' %}selected{% endif %}>Menor preço</option><option value="maior_preco" {% if ordem == 'maior_preco' %}selected{% endif %}>Maior preço</option></select></div>
+      <div class="col-12 col-lg-2"><button class="btn btn-fomo w-100" type="submit">{% include 'fomo/includes/icon.html' with name='search' %} Buscar</button></div>
+    </div>
+    {% if busca or categoria_selecionada %}<div class="mt-3"><a class="text-link" href="{% url 'fomo:eventos' %}">Limpar filtros</a></div>{% endif %}
+  </form>
+  {% if eventos %}<p class="filter-summary">{{ total_eventos }} evento{{ total_eventos|pluralize }} encontrado{{ total_eventos|pluralize }}{% if busca %} para “{{ busca }}”{% endif %}.</p><div class="row g-4">{% for evento in eventos %}<div class="col-12 col-sm-6 col-lg-4 col-xl-3">{% include 'fomo/includes/event_card.html' %}</div>{% endfor %}</div>
+    {% if page_obj.has_other_pages %}<nav aria-label="Paginação dos eventos"><ul class="pagination">
+    {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?q={{ busca|urlencode }}&amp;categoria={{ categoria_selecionada|urlencode }}&amp;ordenar={{ ordem|urlencode }}&amp;page={{ page_obj.previous_page_number }}">Anterior</a></li>{% endif %}
+    <li class="page-item active"><span class="page-link" aria-current="page">{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+    {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?q={{ busca|urlencode }}&amp;categoria={{ categoria_selecionada|urlencode }}&amp;ordenar={{ ordem|urlencode }}&amp;page={{ page_obj.next_page_number }}">Próxima</a></li>{% endif %}
+    </ul></nav>{% endif %}
+  {% else %}<div class="empty-state"><span class="empty-icon">{% include 'fomo/includes/icon.html' with name='search' %}</span>{% if busca or categoria_selecionada %}<h2 class="h4">Nenhum evento encontrado.</h2><p>Tente outro termo ou escolha uma categoria diferente.</p><a href="{% url 'fomo:eventos' %}" class="btn btn-outline-fomo">Limpar filtros</a>{% else %}<h2 class="h4">A agenda está só começando.</h2><p>Ainda não há eventos publicados. Em breve, você vai encontrar experiências incríveis por aqui.</p><span class="status-pill">Novidades em breve</span>{% endif %}</div>{% endif %}
+</div>
+{% endblock %}

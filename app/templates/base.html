@@ -1,0 +1,80 @@
+{% load static %}
+<!doctype html>
+<html lang="pt-br" data-bs-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080808">
+  <meta name="description" content="FOMO: encontre shows, festivais e experiências. Seu próximo grande momento começa aqui.">
+  <title>{% block title %}FOMO | Viva o agora{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="{% static 'fomo/img/favicon.svg' %}">
+  <link rel="stylesheet" href="{% static 'fomo/vendor/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'fomo/css/fomo.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+  {% include 'fomo/includes/icons.svg.html' %}
+  {% if preview_frontend %}<div class="preview-notice"><div class="container-fomo">Prévia visual · Os formulários não salvam dados. <a href="{% url 'fomo:telas' %}">Conhecer todas as telas {% include 'fomo/includes/icon.html' with name='arrow' %}</a></div></div>{% endif %}
+  <header class="site-header">
+    <nav class="navbar navbar-expand-xl container-fomo" aria-label="Navegação principal">
+      <a class="brand" href="{% url 'fomo:home' %}" aria-label="FOMO, início">FOM<span class="brand-o" aria-hidden="true"></span></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal" aria-controls="menuPrincipal" aria-expanded="false" aria-label="Abrir menu"><span class="navbar-toggler-icon"></span></button>
+      <div class="collapse navbar-collapse" id="menuPrincipal">
+        <ul class="navbar-nav main-nav">
+          <li class="nav-item"><a class="nav-link {% if pagina_ativa == 'home' %}active{% endif %}" {% if pagina_ativa == 'home' %}aria-current="page"{% endif %} href="{% url 'fomo:home' %}">Início</a></li>
+          <li class="nav-item"><a class="nav-link {% if pagina_ativa == 'eventos' %}active{% endif %}" {% if pagina_ativa == 'eventos' %}aria-current="page"{% endif %} href="{% url 'fomo:eventos' %}">Eventos</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'fomo:home' %}#categorias">Categorias</a></li>
+          <li class="nav-item"><a class="nav-link {% if pagina_ativa == 'sobre' %}active{% endif %}" {% if pagina_ativa == 'sobre' %}aria-current="page"{% endif %} href="{% url 'fomo:sobre' %}">Sobre</a></li>
+        </ul>
+        <div class="header-actions">
+          <form class="header-search" method="get" action="{% url 'fomo:eventos' %}" role="search">
+            <label class="visually-hidden" for="busca-global">Buscar eventos, artistas ou locais</label>
+            {% include 'fomo/includes/icon.html' with name='search' %}
+            <input id="busca-global" name="q" type="search" placeholder="Busque eventos, artistas, locais..." value="{{ busca|default:'' }}" maxlength="150">
+            <button type="submit" class="visually-hidden-focusable">Buscar</button>
+          </form>
+          <a class="icon-button" href="{% url 'fomo:favoritos' %}" aria-label="Meus favoritos">{% include 'fomo/includes/icon.html' with name='heart' %}</a>
+          {% if user.is_authenticated %}
+          <div class="dropdown">
+            <button class="icon-button" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Abrir menu da minha conta">{% include 'fomo/includes/icon.html' with name='user' %}</button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><span class="dropdown-item-text small text-secondary">Olá, {{ user.first_name|default:user.username }}!</span></li>
+              <li><a class="dropdown-item" href="{% url 'fomo:ingressos' %}">Meus ingressos</a></li>
+              {% if pode_criar_evento %}<li><a class="dropdown-item" href="{% url 'fomo:meus_eventos' %}">Gerenciar eventos</a></li>{% endif %}
+              <li><hr class="dropdown-divider"></li>
+              <li><form method="post" action="{% url 'fomo:logout' %}">{% csrf_token %}<button class="dropdown-item" type="submit">Sair da conta</button></form></li>
+            </ul>
+          </div>
+          {% else %}
+          <a class="icon-button d-none d-xl-inline-flex" href="{% url 'fomo:login' %}" aria-label="Minha conta">{% include 'fomo/includes/icon.html' with name='user' %}</a>
+          <a class="btn btn-fomo btn-sm" href="{% url 'fomo:login' %}">Entrar</a>
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main id="conteudo" tabindex="-1">
+    {% if messages %}<div class="container-fomo pt-3" aria-live="polite">
+      {% for message in messages %}<div class="alert {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}alert-danger{% elif message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}alert-success{% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}alert-warning{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar mensagem"></button></div>{% endfor %}
+    </div>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="container-fomo">
+      <div class="row gy-4 align-items-start">
+        <div class="col-12 col-lg-4"><a class="brand footer-brand" href="{% url 'fomo:home' %}" aria-label="FOMO, início">FOM<span class="brand-o" aria-hidden="true"></span></a><p class="footer-tagline">Menos ficar de fora.<br>Mais histórias para contar.</p></div>
+        <div class="col-6 col-lg-2"><p class="footer-title">Explore</p><a href="{% url 'fomo:eventos' %}">Eventos</a><a href="{% url 'fomo:home' %}#categorias">Categorias</a><a href="{% url 'fomo:favoritos' %}">Favoritos</a></div>
+        <div class="col-6 col-lg-2"><p class="footer-title">FOMO</p><a href="{% url 'fomo:sobre' %}">Sobre nós</a><a href="{% url 'fomo:sobre' %}#duvidas">Dúvidas frequentes</a><a href="{% url 'fomo:login' %}">Minha conta</a></div>
+        <div class="col-12 col-lg-4"><p class="footer-title">Seu próximo momento começa aqui.</p><p class="text-muted-fomo small">Crie sua conta e fique perto das experiências que combinam com você.</p><a class="btn btn-outline-fomo btn-sm d-inline-flex" href="{% url 'fomo:cadastro' %}">Fazer parte {% include 'fomo/includes/icon.html' with name='arrow' %}</a></div>
+      </div>
+      <div class="footer-bottom"><small>© {% now 'Y' %} FOMO. Todos os direitos reservados.</small><span class="footer-signature">Viva o agora<span class="text-orange">.</span></span></div>
+    </div>
+  </footer>
+  <script src="{% static 'fomo/vendor/bootstrap.bundle.min.js' %}" defer></script>
+  <script src="{% static 'fomo/js/fomo.js' %}" defer></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

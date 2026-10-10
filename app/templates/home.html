@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}FOMO | O que você não pode perder?{% endblock %}
+{% block content %}
+<section class="hero" aria-labelledby="hero-titulo">
+  <div class="container-fomo hero-inner">
+    <div class="hero-copy">
+      <p class="eyebrow hero-eyebrow"><span class="live-dot" aria-hidden="true"></span> Grandes momentos te esperam</p>
+      <h1 id="hero-titulo">O que<br><span class="text-orange">você não pode</span><br>perder?</h1>
+      <p class="hero-description">Descubra shows, festivais e experiências.<br class="d-none d-md-block"> O seu próximo momento inesquecível<br class="d-none d-md-block"> está a um clique.</p>
+      <a class="btn btn-fomo rounded-pill hero-cta" href="{% url 'fomo:eventos' %}">Explorar eventos {% include 'fomo/includes/icon.html' with name='arrow' %}</a>
+    </div>
+    <span class="hero-note" aria-hidden="true">Viva o<br>agora.</span>
+  </div>
+</section>
+
+<section class="container-fomo category-section" id="categorias" aria-labelledby="categorias-titulo">
+  <h2 id="categorias-titulo" class="visually-hidden">Explore por categoria</h2>
+  <div class="category-grid">
+    {% for categoria in categorias %}<a class="category-tile" href="{% url 'fomo:eventos' %}?categoria={{ categoria.slug|urlencode }}">{% include 'fomo/includes/icon.html' with name=categoria.icone|default:'calendar' %}<span>{{ categoria.nome }}</span></a>{% empty %}<p class="text-muted-fomo">As categorias estarão disponíveis em breve.</p>{% endfor %}
+  </div>
+</section>
+
+<div class="container-fomo home-sections">
+  <section class="section-block" aria-labelledby="destaques-titulo">
+    <div class="section-heading"><h2 id="destaques-titulo">Eventos em <span class="text-orange">destaque</span></h2><a class="text-link" href="{% url 'fomo:eventos' %}">Ver todos {% include 'fomo/includes/icon.html' with name='arrow' %}</a></div>
+    {% if eventos_destaque %}<div class="row g-3">{% for evento in eventos_destaque %}<div class="col-12 col-sm-6 col-lg-4 col-xl">{% include 'fomo/includes/event_card.html' %}</div>{% endfor %}</div>
+    {% else %}<div class="empty-state featured-empty"><span class="empty-icon">{% include 'fomo/includes/icon.html' with name='ticket' %}</span><h3>O próximo grande momento vem aí.</h3><p>Ainda não temos eventos publicados. Volte em breve para descobrir o que você não vai querer perder.</p><span class="status-pill"><span class="live-dot" aria-hidden="true"></span> Novidades em breve</span></div>{% endif %}
+  </section>
+
+  <section class="app-banner section-block" aria-labelledby="app-titulo">
+    <div class="phone-mockup" aria-hidden="true"><div class="phone-island"></div><span class="phone-brand">FOM<span>O</span></span><div class="phone-photo"></div><span class="phone-title">Grandes<br>momentos.<br><em>Com você.</em></span><div class="phone-bottom">⌂ <span>♡</span> ▦</div></div>
+    <div class="app-copy"><p class="eyebrow">Sua experiência, mais perto</p><h2 id="app-titulo">Seus eventos favoritos,<br><span class="text-orange">na palma da mão.</span></h2><p>O FOMO acompanha seu ritmo. Explore pelo celular<br class="d-none d-lg-block"> e prepare-se para viver novas histórias.</p><span class="status-pill">Feito para o seu celular</span></div>
+    <div class="app-visual" aria-hidden="true"><div class="visual-ring"></div><div class="floating-ticket"><span>FOMO</span><span class="ticket-line"></span><strong>VIVA<br>O AGORA.</strong>{% include 'fomo/includes/icon.html' with name='ticket' %}</div></div>
+  </section>
+
+  <section class="section-block" aria-labelledby="proximos-titulo"><div class="section-heading"><h2 id="proximos-titulo">Próximos <span class="text-orange">eventos</span></h2><a class="text-link" href="{% url 'fomo:eventos' %}?ordenar=data">Ver todos {% include 'fomo/includes/icon.html' with name='arrow' %}</a></div>
+    {% if proximos_eventos %}<div class="row g-3">{% for evento in proximos_eventos %}<div class="col-12 col-md-6 col-xl-3">{% include 'fomo/includes/event_card.html' with compacto=True %}</div>{% endfor %}</div>
+    {% else %}<div class="upcoming-empty"><span class="empty-icon small-icon">{% include 'fomo/includes/icon.html' with name='calendar' %}</span><div><h3>Uma nova agenda está chegando.</h3><p>Os próximos eventos aparecerão aqui assim que forem publicados.</p></div><span class="text-orange d-none d-md-inline-flex">{% include 'fomo/includes/icon.html' with name='sparkles' %}</span></div>{% endif %}
+  </section>
+</div>
+{% endblock %}

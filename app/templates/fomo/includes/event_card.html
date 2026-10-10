@@ -1,0 +1,10 @@
+<article class="event-card{% if compacto %} compact{% endif %}">
+  <a class="event-image" href="{% url 'fomo:evento_detalhe' evento.pk %}" aria-label="Ver {{ evento.titulo }}">
+    {% if evento.imagem %}<img src="{{ evento.imagem.url }}" alt="{{ evento.titulo }}" loading="lazy" width="640" height="400">{% else %}<div class="event-image-placeholder">{% include 'fomo/includes/icon.html' with name='ticket' %}</div>{% endif %}
+  </a>
+  {% if not compacto %}<div class="event-favorite">
+    {% if user.is_authenticated %}<form method="post" action="{% url 'fomo:alternar_favorito' evento.pk %}">{% csrf_token %}<button class="icon-button{% if evento.favoritado %} is-favorite{% endif %}" type="submit" aria-label="{% if evento.favoritado %}Remover{% else %}Adicionar{% endif %} {{ evento.titulo }} {% if evento.favoritado %}dos{% else %}aos{% endif %} favoritos" aria-pressed="{{ evento.favoritado|yesno:'true,false' }}">{% include 'fomo/includes/icon.html' with name='heart' %}</button></form>
+    {% else %}<a class="icon-button" href="{% url 'fomo:login' %}" aria-label="Entrar para favoritar {{ evento.titulo }}">{% include 'fomo/includes/icon.html' with name='heart' %}</a>{% endif %}
+  </div>{% endif %}
+  <div class="event-body"><span class="category-pill">{{ evento.categoria.nome }}</span><h3><a href="{% url 'fomo:evento_detalhe' evento.pk %}">{{ evento.titulo }}</a></h3><p class="event-meta">{% include 'fomo/includes/icon.html' with name='calendar' %}{{ evento.data|date:'d M Y' }} · {{ evento.data|date:'H:i' }}</p><p class="event-meta">{% include 'fomo/includes/icon.html' with name='pin' %}{{ evento.local }} · {{ evento.cidade }}</p><p class="event-price">{% if evento.preco == 0 %}Entrada gratuita{% else %}A partir de R$ {{ evento.preco|floatformat:2 }}{% endif %}</p><a class="btn btn-fomo btn-sm" href="{% url 'fomo:evento_detalhe' evento.pk %}">Ver ingressos{% if compacto %} {% include 'fomo/includes/icon.html' with name='arrow' %}{% endif %}</a></div>
+</article>

@@ -1,0 +1,5 @@
+{% extends 'base.html' %}
+{% block title %}Telas do frontend | FOMO{% endblock %}
+{% block content %}
+<div class="container-fomo page-content"><div class="page-heading"><p class="eyebrow">Prévia visual</p><h1>Conheça as <span class="text-orange">telas.</span></h1><p>Este ambiente permite revisar os templates. Não contém eventos e não executa login, compras ou gravações.</p></div><div class="view-index">{% for tela in telas %}<a href="{{ tela.url }}">{{ tela.nome }} {% include 'fomo/includes/icon.html' with name='arrow' %}</a>{% endfor %}</div></div>
+{% endblock %}

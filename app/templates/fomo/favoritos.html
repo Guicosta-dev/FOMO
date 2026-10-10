@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block title %}Meus favoritos | FOMO{% endblock %}
+{% block content %}
+<div class="container-fomo page-content"><div class="page-heading"><p class="eyebrow">Para viver depois</p><h1>Seus <span class="text-orange">favoritos.</span></h1><p>Guarde as experiências que você quer viver.</p></div>
+{% if user.is_authenticated %}{% if eventos %}<div class="row g-4">{% for evento in eventos %}<div class="col-12 col-sm-6 col-lg-4 col-xl-3">{% include 'fomo/includes/event_card.html' %}</div>{% endfor %}</div>{% else %}<div class="empty-state"><span class="empty-icon">{% include 'fomo/includes/icon.html' with name='heart' %}</span><h2 class="h4">O que faz seu coração bater mais forte?</h2><p>Você ainda não salvou nenhum evento. Explore e toque no coração dos seus favoritos.</p><a class="btn btn-fomo" href="{% url 'fomo:eventos' %}">Explorar eventos</a></div>{% endif %}
+{% else %}<div class="empty-state"><span class="empty-icon">{% include 'fomo/includes/icon.html' with name='heart' %}</span><h2 class="h4">Seus favoritos merecem um lugar.</h2><p>Entre na sua conta para salvar as experiências que você não quer perder.</p><a class="btn btn-fomo" href="{% url 'fomo:login' %}">Entrar</a><a class="btn btn-quiet ms-2" href="{% url 'fomo:cadastro' %}">Criar conta</a></div>{% endif %}
+</div>
+{% endblock %}
