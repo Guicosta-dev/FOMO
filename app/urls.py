@@ -9,6 +9,11 @@ urlpatterns = [
     # Área pública
     path("", views.CatalogView.as_view(), name="catalog"),
     path("eventos/<slug:slug>/", views.EventDetailView.as_view(), name="event_detail"),
+    # Pedidos (comprador)
+    path("eventos/<slug:slug>/comprar/", views.OrderCreateView.as_view(), name="order_create"),
+    path("meus-pedidos/", views.OrderListView.as_view(), name="order_list"),
+    path("pedidos/<uuid:public_id>/", views.OrderDetailView.as_view(), name="order_detail"),
+    path("pedidos/<uuid:public_id>/cancelar/", views.OrderCancelView.as_view(), name="order_cancel"),
     # Contas
     path("contas/cadastro/", views.SignUpView.as_view(), name="signup"),
     path("contas/entrar/", views.RoleAwareLoginView.as_view(), name="login"),
@@ -19,4 +24,8 @@ urlpatterns = [
     path("painel/eventos/<int:pk>/editar/", views.EventUpdateView.as_view(), name="event_update"),
     path("painel/eventos/<int:pk>/publicar/", views.EventPublishView.as_view(), name="event_publish"),
     path("painel/eventos/<int:pk>/despublicar/", views.EventUnpublishView.as_view(), name="event_unpublish"),
+    # Lotes (produtor)
+    path("painel/eventos/<int:event_pk>/lotes/", views.BatchListView.as_view(), name="batch_list"),
+    path("painel/eventos/<int:event_pk>/lotes/novo/", views.BatchCreateView.as_view(), name="batch_create"),
+    path("painel/lotes/<int:pk>/editar/", views.BatchUpdateView.as_view(), name="batch_update"),
 ]

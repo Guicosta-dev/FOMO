@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
-from .models import Event, User
+from .models import Event, TicketBatch, User
 
 DATETIME_LOCAL = "%Y-%m-%dT%H:%M"  # formato do <input type="datetime-local">
 
@@ -57,3 +57,49 @@ class EventForm(BootstrapFormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         for name in ("starts_at", "ends_at"):
             self.fields[name].input_formats = [DATETIME_LOCAL, "%Y-%m-%dT%H:%M:%S"]
+
+
+class BatchForm(BootstrapFormMixin, forms.ModelForm):
+    """Formulário de lote do produtor. O evento é definido pela view, nunca pelo navegador."""
+
+    class Meta:
+        model = TicketBatch
+        fields = [
+            "name",
+            "price",
+            "quantity",
+            "max_per_order",
+            "sales_start",
+            "sales_end",
+            "is_active",
+        ]
+        widgets = {
+            "sales_start": forms.DateTimeInput(attrs={"type": "datetime-local"}, format=DATETIME_LOCAL),
+            "sales_end": forms.DateTimeInput(attrs={"type": "datetime-local"}, format=DATETIME_LOCAL),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name in ("sales_start", "sales_end"):
+            self.fields[name].input_formats = [DATETIME_LOCAL, "%Y-%m-%dT%H:%M:%S"]
+        # Checkbox não deve receber a classe "form-control".
+        self.fields["is_active"].widget.attrs["class"] = "form-check-input"
+
+
+class OrderForm(forms.Form):
+    """Quantidades escolhidas pelo comprador: um campo `qty_<id_do_lote>` por lote."""
+
+    def __init__(self, *args, batches, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.batches = list(batches)
+        for batch in self.batches:
+            self.fields[f"qty_{batch.pk}"] = forms.IntegerField(
+                label=batch.name, min_value=0, required=False, initial=0
+            )
+
+    def quantities(self):
+        """Retorna {id_do_lote: quantidade} com os valores já validados."""
+        return {
+            batch.pk: self.cleaned_data.get(f"qty_{batch.pk}") or 0
+            for batch in self.batches
+        }
