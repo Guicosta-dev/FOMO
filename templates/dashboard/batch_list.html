@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}
+  Lotes · {{ event.title }} | FOMO
+{% endblock %}
+{% block content %}
+  <div class="container-fomo page-content">
+    <nav aria-label="Localização">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'app:dashboard' %}">Painel</a></li>
+        <li class="breadcrumb-item active">Lotes</li>
+      </ol>
+    </nav>
+    <div class="page-heading">
+      <p class="eyebrow">{{ event.title }}</p>
+      <h1>Organize seus <span class="text-violet">lotes.</span></h1>
+      <p>Defina preços, períodos de venda e quantidades. Reservas pendentes também ocupam o estoque.</p>
+    </div>
+    <div class="dashboard-actions mb-4">
+      <a class="btn btn-fomo" href="{% url 'app:batch_create' event.pk %}">Criar lote</a><a class="btn btn-outline-fomo"
+                                                                                           href="{% url 'app:event_detail' event.slug %}">Ver evento</a>
+      {% if event.is_published %}
+        <form method="post" action="{% url 'app:event_unpublish' event.pk %}">
+          {% csrf_token %}
+          <button class="btn btn-quiet" type="submit">Despublicar</button>
+        </form>
+      {% elif event.has_active_batch %}
+        <form method="post" action="{% url 'app:event_publish' event.pk %}">
+          {% csrf_token %}
+          <button class="btn btn-violet" type="submit">Publicar evento</button>
+        </form>
+      {% else %}
+        <span class="text-muted-fomo small">Crie um lote ativo para publicar.</span>
+      {% endif %}
+    </div>
+    {% if batches %}
+      <div class="table-panel">
+        <table class="table align-middle">
+          <caption class="visually-hidden">Lotes do evento</caption>
+          <thead>
+            <tr>
+              <th>Lote</th>
+              <th>Preço</th>
+              <th>Total</th>
+              <th>Confirmados</th>
+              <th>Ocupados</th>
+              <th>Disponíveis</th>
+              <th>Vendas</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for batch in batches %}
+              <tr>
+                <td>{{ batch.name }}<span class="small text-muted-fomo d-block">Até {{ batch.max_per_order }} por pedido</span></td><td class="text-nowrap">R$ {{ batch.price|floatformat:2 }}</td><td>{{ batch.quantity }}</td><td>{{ batch.sold }}</td><td>{{ batch.taken }}</td><td>{{ batch.available }}</td><td><span class="badge-status{% if batch.on_sale %} active{% endif %}">
+                  {% if batch.on_sale %}
+                    Abertas
+                  {% elif not batch.is_active %}
+                    Inativo
+                  {% else %}
+                    Fechadas
+                  {% endif %}
+                </span></td><td><a class="btn btn-outline-fomo"
+                                  href="{% url 'app:batch_update' batch.pk %}">Editar</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <span class="empty-icon">{% include "includes/icon.html" with name="ticket" %}</span>
+        <h2 class="h4">Todo grande evento começa com um convite.</h2>
+        <p>Crie o primeiro lote. Um lote ativo libera a publicação do evento.</p>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}
+  {% if object %}
+    Editar
+  {% else %}
+    Criar
+  {% endif %}
+  evento | FOMO
+{% endblock %}
+{% block content %}
+  <div class="container-fomo page-content">
+    <nav aria-label="Localização">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'app:dashboard' %}">Painel</a></li>
+        <li class="breadcrumb-item active">
+          {% if object %}
+            Editar
+          {% else %}
+            Criar
+          {% endif %}
+          evento
+        </li>
+      </ol>
+    </nav>
+    <div class="page-heading">
+      <p class="eyebrow">Crie grandes momentos</p>
+      <h1>
+        {% if object %}
+          Edite seu
+        {% else %}
+          Crie seu
+        {% endif %}
+        <span class="text-orange">evento.</span>
+      </h1>
+    </div>
+    <div class="row g-4">
+      <div class="col-12 col-lg-8">
+        <form class="panel django-form" method="post">
+          {% csrf_token %}
+          {% include "includes/form_fields.html" %}
+          <div class="form-actions">
+            <button type="submit" class="btn btn-fomo">Salvar evento</button>
+            <a class="btn btn-quiet" href="{% url 'app:dashboard' %}">Cancelar</a>
+          </div>
+        </form>
+      </div>
+      <div class="col-12 col-lg-4">
+        <aside class="helper-panel">
+          <h2>Da ideia à experiência.</h2>
+          <ul>
+            <li>Use um título claro e uma descrição completa.</li>
+            <li>Informe o local, endereço e cidade.</li>
+            <li>As datas estão no horário de São Paulo.</li>
+            <li>Cadastre um lote ativo antes de publicar.</li>
+          </ul>
+        </aside>
+      </div>
+    </div>
+  </div>
+{% endblock %}

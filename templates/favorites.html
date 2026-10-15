@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}
+  Meus favoritos | FOMO
+{% endblock %}
+{% block content %}
+  <div class="container-fomo page-content">
+    <div class="page-heading">
+      <p class="eyebrow">Para viver depois</p>
+      <h1>Seus <span class="text-violet">favoritos.</span></h1>
+      <p>Guarde as experiências que você quer viver.</p>
+    </div>
+    {% if events %}
+      <div class="row g-4">
+        {% for event in events %}
+          <div class="col-12 col-sm-6 col-lg-4 col-xl-3">{% include "includes/event_card.html" %}</div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <span class="empty-icon">{% include "includes/icon.html" with name="heart" %}</span>
+        <h2 class="h4">O que faz seu coração bater mais forte?</h2>
+        <p>Você ainda não tem eventos publicados salvos nos favoritos.</p>
+        <a class="btn btn-fomo" href="{% url 'app:catalog' %}">Explorar eventos</a>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

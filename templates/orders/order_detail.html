@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}
+  Pedido {{ order.short_code }} | FOMO
+{% endblock %}
+{% block content %}
+  <div class="container-fomo page-content">
+    <nav aria-label="Localização">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'app:order_list' %}">Meus pedidos</a></li>
+        <li class="breadcrumb-item active">{{ order.short_code }}</li>
+      </ol>
+    </nav>
+    <div class="page-heading">
+      <p class="eyebrow">{{ order.event.title }}</p>
+      <h1>Seu <span class="text-violet">pedido.</span></h1>
+      <p>Código {{ order.short_code }} · Criado em {{ order.created_at|date:'d/m/Y H:i' }}</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-12 col-lg-8">
+        <section class="panel">
+          <span class="badge-status order-status-{{ order.status }}">{{ order.get_status_display }}</span>
+          <h2 class="h4 mt-4">{{ order.event.title }}</h2>
+          <p class="small text-muted-fomo">{{ order.event.starts_at|date:'d/m/Y H:i' }} · {{ order.event.venue_name }} · {{ order.event.city }}</p>
+          <div class="table-panel mt-4">
+            <table class="table align-middle">
+              <caption class="visually-hidden">Itens do pedido</caption>
+              <thead>
+                <tr>
+                  <th>Lote</th>
+                  <th>Quantidade</th>
+                  <th>Unitário</th>
+                  <th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in order.items.all %}
+                  <tr>
+                    <td>{{ item.batch.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td class="text-nowrap">R$ {{ item.unit_price|floatformat:2 }}</td>
+                    <td class="text-nowrap">R$ {{ item.subtotal|floatformat:2 }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="order-total">
+            <span>Total do pedido</span><strong>R$ {{ order.total|floatformat:2 }}</strong>
+          </div>
+          {% if order.event.is_published %}
+            <a class="text-link"
+              href="{% url 'app:event_detail' order.event.slug %}">Ver evento {% include "includes/icon.html" with name="arrow" %}</a>
+          {% else %}
+            <p class="small text-muted-fomo">O evento não está no catálogo, mas seu pedido permanece no histórico.</p>
+          {% endif %}
+        </section>
+      </div>
+      <div class="col-12 col-lg-4">
+        <aside class="panel">
+          {% if order.status == "pending" %}
+            <h2 class="h4">Ingressos reservados</h2>
+            <p class="small text-muted-fomo">Sua reserva vai até <strong class="text-light">{{ order.expires_at|date:'d/m/Y H:i' }}</strong>. Depois do prazo, os ingressos voltam ao estoque.</p>
+            {% if manual_confirmation %}
+              <p class="small text-muted-fomo">Neste projeto, a confirmação é feita pelo administrador. Ainda não há cobrança online.</p>
+            {% endif %}
+            <form method="post" action="{% url 'app:order_cancel' order.public_id %}">
+              {% csrf_token %}
+              <button class="btn btn-outline-fomo w-100" type="submit">Cancelar pedido</button>
+            </form>
+          {% elif order.status == "confirmed" %}
+            <span class="empty-icon">{% include "includes/icon.html" with name="check" %}</span>
+            <h2 class="h4">Experiência confirmada.</h2>
+            <p class="small text-muted-fomo">Confirmado em {{ order.confirmed_at|date:'d/m/Y H:i' }}. Guarde o código do pedido para consultá-lo.</p>
+          {% else %}
+            <h2 class="h4">
+              {% if order.status == "expired" %}
+                Sua reserva expirou.
+              {% else %}
+                Pedido cancelado.
+              {% endif %}
+            </h2>
+            <p class="small text-muted-fomo">Os ingressos desta reserva foram liberados. Você pode consultar novamente os lotes disponíveis.</p>
+          {% endif %}
+        </aside>
+      </div>
+    </div>
+  </div>
+{% endblock %}

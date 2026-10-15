@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}
+  Entrar | FOMO
+{% endblock %}
+{% block content %}
+  <!-- Página de login: destaque visual e formulário Django. -->
+  <div class="auth-layout">
+    <aside class="auth-art">
+      <div>
+        <p class="eyebrow">Viva o agora</p>
+        <h2>
+          Grandes momentos.
+          <br>
+          <span class="text-orange">Boas histórias.</span>
+          <br>
+          Tudo começa aqui.
+        </h2>
+        <p>O próximo ingresso pode ser para uma memória inesquecível.</p>
+      </div>
+    </aside>
+    <section class="auth-form-section" aria-labelledby="login-titulo">
+      <div class="auth-form">
+        <p class="eyebrow">Bem-vindo de volta</p>
+        <h1 id="login-titulo">Vamos viver o <span class="text-violet">agora?</span></h1>
+        <p>Entre na sua conta para continuar.</p>
+        <form method="post" class="django-form" action="{% url 'app:login' %}">
+          {% csrf_token %}
+          {% include "includes/form_fields.html" %}
+          {% if next %}
+            <input type="hidden" name="next" value="{{ next }}">
+          {% endif %}
+          <button class="btn btn-violet"
+            type="submit">Entrar {% include "includes/icon.html" with name="arrow" %}</button>
+        </form>
+        <p class="auth-switch">Ainda não tem conta? <a href="{% url 'app:signup' %}">Cadastre-se</a></p>
+        <p class="auth-safe">{% include "includes/icon.html" with name="lock" %}Sua próxima experiência começa na sua conta.</p>
+      </div>
+    </section>
+  </div>
+{% endblock %}

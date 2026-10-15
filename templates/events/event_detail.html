@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}
+  {{ event.title }} | FOMO
+{% endblock %}
+{% block content %}
+  <div class="container-fomo page-content">
+    <nav aria-label="Localização">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'app:catalog' %}">Eventos</a></li>
+        <li class="breadcrumb-item active">{{ event.title }}</li>
+      </ol>
+    </nav>
+    {% if not event.is_published %}
+      <div class="alert alert-warning">Prévia do produtor. Este evento ainda não está publicado.</div>
+    {% endif %}
+    <div class="row g-4 g-xl-5">
+      <div class="col-12 col-lg-7">
+        <div class="detail-placeholder" aria-hidden="true">
+          {% include "includes/icon.html" with name="ticket" %}
+        </div>
+        <span class="category-pill">{{ event.city }}</span>
+        <h1 class="detail-title">{{ event.title }}</h1>
+        <div class="detail-meta">
+          <span>{% include "includes/icon.html" with name="calendar" %}{{ event.starts_at|date:'d/m/Y H:i' }}</span>
+          <span>{% include "includes/icon.html" with name="pin" %}{{ event.venue_name }}</span>
+        </div>
+        {% if event.ends_at %}
+          <p class="small text-muted-fomo">Término: {{ event.ends_at|date:'d/m/Y H:i' }}</p>
+        {% endif %}
+        <p class="small text-muted-fomo">{{ event.address }} · {{ event.city }}</p>
+        <h2 class="h4 mt-4">Sobre o evento</h2>
+        <div class="event-description">{{ event.description|linebreaks }}</div>
+        <p class="small text-muted-fomo">Organizado por {{ event.producer.get_full_name|default:event.producer.username }}.</p>
+        {% if user.is_authenticated and event.is_published %}
+          <form method="post" action="{% url 'app:favorite_toggle' event.slug %}">
+            {% csrf_token %}
+            <button class="btn btn-outline-fomo" type="submit">
+              {% include "includes/icon.html" with name="heart" %}
+              {% if event.is_favorite %}
+                Remover dos favoritos
+              {% else %}
+                Guardar nos favoritos
+              {% endif %}
+            </button>
+          </form>
+        {% endif %}
+        {% if can_manage %}
+          <div class="form-actions">
+            <a class="btn btn-outline-fomo"
+              href="{% url 'app:event_update' event.pk %}">Editar evento</a><a class="btn btn-quiet" href="{% url 'app:batch_list' event.pk %}">Gerenciar lotes</a>
+          </div>
+        {% endif %}
+      </div>
+      <div class="col-12 col-lg-5">
+        <aside class="panel ticket-panel">
+          <p class="eyebrow">Seu lugar nessa experiência</p>
+          <h2 class="panel-title">Ingressos</h2>
+          {% if batches %}
+            <div class="batch-summary">
+              {% for batch in batches %}
+                <div class="batch-summary-row">
+                  <div>
+                    <strong>{{ batch.name }}</strong><span class="text-muted-fomo small d-block">{{ batch.available }} disponíveis · até {{ batch.max_per_order }} por pedido</span>
+                  </div>
+                  <span class="text-orange fw-bold">
+                    {% if batch.price == 0 %}
+                      Grátis
+                    {% else %}
+                      R$ {{ batch.price|floatformat:2 }}
+                    {% endif %}
+                  </span>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+          {% if event.is_published and has_on_sale %}
+            {% if user.is_authenticated %}
+              <form method="post"
+                action="{% url 'app:order_create' event.slug %}"
+                class="django-form"
+                data-order-form>
+                {% csrf_token %}
+                {% include "includes/form_fields.html" with form=order_form %}
+                <div class="order-total">
+                  <span>Total estimado</span><strong data-batch-total
+                                               aria-live="polite">R$ 0,00</strong>
+                </div>
+                <button class="btn btn-fomo w-100" type="submit">{% include "includes/icon.html" with name="ticket" %}Reservar ingressos</button>
+                <p class="small text-muted-fomo mt-3 mb-0">O pedido começa como pendente. A reserva tem prazo e pode ser cancelada antes da confirmação.</p>
+              </form>
+            {% else %}
+              <p class="text-muted-fomo small mt-3">Entre na sua conta para escolher os lotes e reservar seus ingressos.</p>
+              <a class="btn btn-violet w-100"
+                href="{% url 'app:login' %}?next={{ event.get_absolute_url|urlencode }}">Entrar para comprar</a>
+            {% endif %}
+          {% else %}
+            <p class="status-pill mt-3">
+              {% if not event.is_published %}
+                Evento não publicado
+              {% elif not batches %}
+                Nenhum lote ativo
+              {% else %}
+                Vendas fechadas ou ingressos esgotados
+              {% endif %}
+            </p>
+          {% endif %}
+        </aside>
+      </div>
+    </div>
+  </div>
+{% endblock %}

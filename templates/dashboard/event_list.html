@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}
+  Painel do produtor | FOMO
+{% endblock %}
+{% block content %}
+  <div class="container-fomo page-content">
+    <div class="page-heading">
+      <p class="eyebrow">Área do produtor</p>
+      <h1>Seus <span class="text-orange">eventos.</span></h1>
+      <p>Crie experiências, organize lotes e acompanhe a publicação.</p>
+    </div>
+    <a class="btn btn-fomo mb-4"
+      href="{% url 'app:event_create' %}">{% include "includes/icon.html" with name="plus" %}Criar evento</a>
+    {% if events %}
+      <div class="table-panel">
+        <table class="table align-middle">
+          <caption class="visually-hidden">Eventos do produtor logado</caption>
+          <thead>
+            <tr>
+              <th>Evento</th>
+              <th>Data</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for event in events %}
+              <tr>
+                <td><a href="{% url 'app:event_detail' event.slug %}">{{ event.title }}</a><span class="d-block small text-muted-fomo">{{ event.city }}</span></td><td class="text-nowrap">{{ event.starts_at|date:'d/m/Y H:i' }}</td><td><span class="badge-status{% if event.is_published %} active{% endif %}">{{ event.get_status_display }}</span></td><td>
+                  <div class="dashboard-actions">
+                    <a class="btn btn-outline-fomo"
+                      href="{% url 'app:event_update' event.pk %}">Editar</a>
+                    <a class="btn btn-quiet" href="{% url 'app:batch_list' event.pk %}">Lotes</a>
+                    {% if event.is_published %}
+                      <form method="post" action="{% url 'app:event_unpublish' event.pk %}">
+                        {% csrf_token %}
+                        <button class="btn btn-quiet" type="submit">Despublicar</button>
+                      </form>
+                    {% elif event.has_active_batch %}
+                      <form method="post" action="{% url 'app:event_publish' event.pk %}">
+                        {% csrf_token %}
+                        <button class="btn btn-fomo" type="submit">Publicar</button>
+                      </form>
+                    {% else %}
+                      <a class="btn btn-violet"
+                        href="{% url 'app:batch_list' event.pk %}">Crie um lote para publicar</a>
+                    {% endif %}
+                    {% if not event.is_published %}
+                      <a class="btn btn-quiet"
+                        href="{% url 'app:event_delete' event.pk %}">Excluir</a>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <span class="empty-icon">{% include "includes/icon.html" with name="calendar" %}</span>
+        <h2 class="h4">Sua primeira experiência começa aqui.</h2>
+        <p>Você ainda não criou eventos. O primeiro cadastro fica em rascunho até ter um lote ativo.</p>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

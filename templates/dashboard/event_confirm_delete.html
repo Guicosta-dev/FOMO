@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}
+  Excluir evento | FOMO
+{% endblock %}
+{% block content %}
+  <div class="container-fomo page-content">
+    <section class="panel danger-panel">
+      <span class="empty-icon">{% include "includes/icon.html" with name="trash" %}</span>
+      <h1>Excluir este evento?</h1>
+      <p>Você está prestes a excluir <strong class="text-light">{{ event.title }}</strong>. Essa ação não pode ser desfeita. Eventos com pedidos devem ser mantidos no histórico.</p>
+      <form method="post" action="{% url 'app:event_delete' event.pk %}">
+        {% csrf_token %}
+        <div class="form-actions">
+          <a class="btn btn-quiet" href="{% url 'app:dashboard' %}">Manter evento</a>
+          <button class="btn btn-danger" type="submit">Sim, excluir</button>
+        </div>
+      </form>
+    </section>
+  </div>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}
+  Sobre o FOMO | Viva o agora
+{% endblock %}
+{% block content %}
+  <div class="container-fomo page-content">
+    <section class="about-intro">
+      <p class="eyebrow">Mais presença. Mais experiências.</p>
+      <h1>
+        A vida acontece
+        <br>
+        <span class="text-orange">quando você está lá.</span>
+      </h1>
+      <p>FOMO vem de “Fear Of Missing Out”, o medo de ficar de fora. A nossa ideia é transformar essa sensação em vontade de viver: aproximar pessoas de eventos, encontros e novas histórias.</p>
+      <a class="btn btn-fomo mt-2"
+        href="{% url 'app:catalog' %}">Encontre seu próximo momento {% include "includes/icon.html" with name="arrow" %}</a>
+    </section>
+    <div class="row g-3 mt-4 mb-5">
+      <div class="col-12 col-md-4">
+        <article class="feature-card">
+          {% include "includes/icon.html" with name="search" %}
+          <h2>Descubra o que combina.</h2>
+          <p>Explore categorias e encontre experiências do seu jeito.</p>
+        </article>
+      </div>
+      <div class="col-12 col-md-4">
+        <article class="feature-card">
+          {% include "includes/icon.html" with name="heart" %}
+          <h2>Guarde a vontade de ir.</h2>
+          <p>Salve os eventos favoritos e planeje seus próximos momentos.</p>
+        </article>
+      </div>
+      <div class="col-12 col-md-4">
+        <article class="feature-card">
+          {% include "includes/icon.html" with name="users" %}
+          <h2>Faça parte da história.</h2>
+          <p>Shows, esportes, arte e encontros: há muita coisa para viver.</p>
+        </article>
+      </div>
+    </div>
+    <!-- Dúvidas frequentes: acordeão do Bootstrap. -->
+    <section class="faq" id="duvidas" aria-labelledby="duvidas-titulo">
+      <div class="section-heading">
+        <h2 id="duvidas-titulo">Dúvidas <span class="text-orange">frequentes</span></h2>
+      </div>
+      <div class="accordion" id="faqFomo">
+        <div class="accordion-item">
+          <h3 class="accordion-header">
+            <button class="accordion-button"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#faq1"
+              aria-expanded="true"
+              aria-controls="faq1">Como encontro um evento?</button>
+          </h3>
+          <div id="faq1"
+            class="accordion-collapse collapse show"
+            data-bs-parent="#faqFomo">
+            <div class="accordion-body">
+              Acesse Eventos, procure pelo nome, artista ou local e escolha uma categoria. As experiências publicadas pelos produtores aparecerão na busca.
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h3 class="accordion-header">
+            <button class="accordion-button collapsed"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#faq2"
+              aria-expanded="false"
+              aria-controls="faq2">Preciso de uma conta?</button>
+          </h3>
+          <div id="faq2"
+            class="accordion-collapse collapse"
+            data-bs-parent="#faqFomo">
+            <div class="accordion-body">
+              Você pode explorar a agenda sem entrar. Uma conta permite guardar favoritos, reservar ingressos e acompanhar os pedidos. Produtores também podem organizar eventos.
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h3 class="accordion-header">
+            <button class="accordion-button collapsed"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#faq3"
+              aria-expanded="false"
+              aria-controls="faq3">O FOMO funciona no celular?</button>
+          </h3>
+          <div id="faq3"
+            class="accordion-collapse collapse"
+            data-bs-parent="#faqFomo">
+            <div class="accordion-body">
+              Sim. O site se adapta a celulares e tablets. Você pode acessar o FOMO pelo navegador, sem precisar instalar nada.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+{% endblock %}
