@@ -1,13 +1,14 @@
 from datetime import timedelta
+from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
 from .forms import EventForm
-from .models import Event
+from .models import Event, TicketBatch
 
 # =============================================================================
 # Funções auxiliares para criar dados nos testes
@@ -39,6 +40,12 @@ def make_event(producer, **kwargs):
     return Event.objects.create(producer=producer, **defaults)
 
 
+def make_batch(event, **kwargs):
+    defaults = {"name": "Lote 1", "price": Decimal("50.00"), "quantity": 10}
+    defaults.update(kwargs)
+    return TicketBatch.objects.create(event=event, **defaults)
+
+
 def to_input(dt):
     """Converte datetime para o texto que o <input type="datetime-local"> envia."""
     return timezone.localtime(dt).strftime("%Y-%m-%dT%H:%M")
@@ -59,6 +66,42 @@ def event_form_data(**overrides):
 
 
 # =============================================================================
+# Templates de mentira para os testes
+# =============================================================================
+# O backend não depende do HTML real (que é trabalho do frontend). Nos testes,
+# cada página usa um template mínimo em memória, só para exibir os dados que o
+# backend entrega. Assim os testes passam mesmo sem a pasta "templates".
+
+STUB_TEMPLATES = {
+    "accounts/login.html": "{{ form.as_p }}",
+    "accounts/signup.html": "{{ form.as_p }}",
+    "events/catalog.html": "{% for event in events %}{{ event.title }}|{% endfor %}",
+    "events/event_detail.html": "{{ event.title }} {{ event.venue_name }}",
+    "dashboard/event_list.html": "{% for event in events %}{{ event.title }}|{% endfor %}",
+    "dashboard/event_form.html": "{{ form.as_p }}",
+}
+
+
+@override_settings(
+    TEMPLATES=[
+        {
+            "BACKEND": "django.template.backends.django.DjangoTemplates",
+            "OPTIONS": {
+                "loaders": [("django.template.loaders.locmem.Loader", STUB_TEMPLATES)],
+                "context_processors": [
+                    "django.template.context_processors.request",
+                    "django.contrib.auth.context_processors.auth",
+                    "django.contrib.messages.context_processors.messages",
+                ],
+            },
+        }
+    ]
+)
+class BackendTestCase(TestCase):
+    """Base de todos os testes de página: usa os templates de mentira acima."""
+
+
+# =============================================================================
 # Contas
 # =============================================================================
 
@@ -75,7 +118,7 @@ def signup_data(**overrides):
     return data
 
 
-class SignUpTests(TestCase):
+class SignUpTests(BackendTestCase):
     def test_producer_signup_logs_in_and_goes_to_dashboard(self):
         response = self.client.post(reverse("app:signup"), signup_data())
         self.assertRedirects(response, reverse("app:dashboard"))
@@ -103,7 +146,7 @@ class SignUpTests(TestCase):
         self.assertTrue(user.check_password("Senha-Forte-12345"))
 
 
-class LoginLogoutTests(TestCase):
+class LoginLogoutTests(BackendTestCase):
     def test_producer_login_goes_to_dashboard(self):
         make_user("prod")
         response = self.client.post(
@@ -138,7 +181,7 @@ class LoginLogoutTests(TestCase):
 # =============================================================================
 
 
-class EventModelTests(TestCase):
+class EventModelTests(BackendTestCase):
     def setUp(self):
         self.producer = make_user()
 
@@ -162,6 +205,7 @@ class EventModelTests(TestCase):
 
     def test_publish_sets_status_and_date(self):
         event = make_event(self.producer)
+        make_batch(event)
         event.publish()
         event.refresh_from_db()
         self.assertTrue(event.is_published)
@@ -174,15 +218,32 @@ class EventModelTests(TestCase):
         event.refresh_from_db()
         self.assertEqual(event.status, Event.Status.DRAFT)
 
+    def test_cannot_publish_without_any_batch(self):
+        event = make_event(self.producer)
+        with self.assertRaises(ValidationError):
+            event.publish()
+        event.refresh_from_db()
+        self.assertEqual(event.status, Event.Status.DRAFT)
+
+    def test_cannot_publish_with_only_inactive_batches(self):
+        event = make_event(self.producer)
+        make_batch(event, is_active=False)
+        self.assertFalse(event.has_active_batch)
+        with self.assertRaises(ValidationError):
+            event.publish()
+        event.refresh_from_db()
+        self.assertEqual(event.status, Event.Status.DRAFT)
+
     def test_unpublish_returns_to_draft(self):
         event = make_event(self.producer)
+        make_batch(event)
         event.publish()
         event.unpublish()
         event.refresh_from_db()
         self.assertEqual(event.status, Event.Status.DRAFT)
 
 
-class EventQuerySetTests(TestCase):
+class EventQuerySetTests(BackendTestCase):
     def setUp(self):
         self.producer = make_user()
         self.now = timezone.now()
@@ -206,7 +267,7 @@ class EventQuerySetTests(TestCase):
         self.assertIn(in_progress, Event.objects.upcoming())
 
 
-class EventFormTests(TestCase):
+class EventFormTests(BackendTestCase):
     def test_valid_form(self):
         self.assertTrue(EventForm(data=event_form_data()).is_valid())
 
@@ -225,7 +286,7 @@ class EventFormTests(TestCase):
         self.assertNotIn("slug", EventForm().fields)
 
 
-class PublicCatalogTests(TestCase):
+class PublicCatalogTests(BackendTestCase):
     def setUp(self):
         self.producer = make_user()
 
@@ -269,7 +330,7 @@ class PublicCatalogTests(TestCase):
 # =============================================================================
 
 
-class DashboardAccessTests(TestCase):
+class DashboardAccessTests(BackendTestCase):
     def test_anonymous_is_redirected_to_login(self):
         url = reverse("app:dashboard")
         response = self.client.get(url)
@@ -291,7 +352,7 @@ class DashboardAccessTests(TestCase):
         self.assertEqual(self.client.get(reverse("app:dashboard")).status_code, 200)
 
 
-class ProducerEventTests(TestCase):
+class ProducerEventTests(BackendTestCase):
     def setUp(self):
         self.me = make_user("eu")
         self.other = make_user("outro")
@@ -342,9 +403,16 @@ class ProducerEventTests(TestCase):
 
     def test_publish_own_event(self):
         event = make_event(self.me)
+        make_batch(event)
         self.client.post(reverse("app:event_publish", args=[event.pk]))
         event.refresh_from_db()
         self.assertTrue(event.is_published)
+
+    def test_publish_without_active_batch_is_refused(self):
+        event = make_event(self.me)
+        self.client.post(reverse("app:event_publish", args=[event.pk]))
+        event.refresh_from_db()
+        self.assertFalse(event.is_published)
 
     def test_cannot_publish_someone_elses_event(self):
         event = make_event(self.other)
@@ -378,7 +446,7 @@ class ProducerEventTests(TestCase):
         self.assertNotContains(self.client.get(reverse("app:catalog")), "Sai do Ar")
 
 
-class FirstEndToEndFlowTests(TestCase):
+class FirstEndToEndFlowTests(BackendTestCase):
     """A primeira meta do projeto: criar -> rascunho -> publicar -> aparecer no catálogo."""
 
     def test_producer_creates_publishes_and_visitor_sees_event(self):
@@ -393,8 +461,14 @@ class FirstEndToEndFlowTests(TestCase):
         self.assertNotContains(self.client.get(reverse("app:catalog")), "Noite de Jazz")
         self.assertEqual(self.client.get(event.get_absolute_url()).status_code, 404)
 
-        # Publica.
+        # Sem lote, a publicação é recusada.
         self.client.force_login(producer)
+        self.client.post(reverse("app:event_publish", args=[event.pk]))
+        event.refresh_from_db()
+        self.assertFalse(event.is_published)
+
+        # Com um lote ativo, publica.
+        make_batch(event)
         self.client.post(reverse("app:event_publish", args=[event.pk]))
 
         # Visitante anônimo vê no catálogo e abre a página.
@@ -403,4 +477,3 @@ class FirstEndToEndFlowTests(TestCase):
         detail = self.client.get(event.get_absolute_url())
         self.assertContains(detail, "Noite de Jazz")
         self.assertContains(detail, "Circo Voador")
-
