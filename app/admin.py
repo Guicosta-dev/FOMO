@@ -2,6 +2,7 @@ from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.core.exceptions import ValidationError
 
+from .cep import LocationStatus, apply_cep_location
 from .models import Event, Order, OrderItem, TicketBatch, User
 
 
@@ -23,8 +24,29 @@ class EventAdmin(admin.ModelAdmin):
     list_display = ("title", "producer", "city", "starts_at", "status")
     list_filter = ("status", "city")
     search_fields = ("title", "producer__username", "city")
-    readonly_fields = ("slug", "published_at", "created_at", "updated_at")
+    readonly_fields = (
+        "slug", "state", "neighborhood", "latitude", "longitude",
+        "published_at", "created_at", "updated_at",
+    )
     inlines = [TicketBatchInline]
+    actions = ["fetch_location"]
+
+    @admin.action(description="Buscar localização (cidade, UF e coordenadas) pelo CEP")
+    def fetch_location(self, request, queryset):
+        done = 0
+        for event in queryset:
+            status = apply_cep_location(event)
+            event.save(update_fields=["city", "state", "neighborhood", "latitude", "longitude"])
+            if status == LocationStatus.OK:
+                done += 1
+            else:
+                self.message_user(
+                    request,
+                    f"“{event.title}”: não foi possível obter as coordenadas ({status}).",
+                    level=messages.WARNING,
+                )
+        if done:
+            self.message_user(request, f"{done} evento(s) localizado(s).")
 
 
 class OrderItemInline(admin.TabularInline):
@@ -64,5 +86,3 @@ class OrderAdmin(admin.ModelAdmin):
                 )
         if confirmed:
             self.message_user(request, f"{confirmed} pedido(s) confirmado(s).")
-
-

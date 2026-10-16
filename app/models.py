@@ -4,12 +4,14 @@ from decimal import Decimal
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import Q, Sum
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
+
+from .geo import bounding_box, haversine_km
 
 
 class User(AbstractUser):
@@ -46,6 +48,27 @@ class EventQuerySet(models.QuerySet):
             Q(ends_at__gte=now) | Q(ends_at__isnull=True, starts_at__gte=now)
         )
 
+    def nearby(self, latitude, longitude, radius_km):
+        """Eventos com coordenadas dentro do raio, do mais perto para o mais longe.
+
+        ATENÇÃO: devolve uma LISTA (não um queryset); use por último na cadeia.
+        Cada evento recebe o atributo `distance_km`.
+        O banco filtra um retângulo (rápido) e a distância exata é conferida aqui.
+        """
+        min_lat, max_lat, min_lon, max_lon = bounding_box(latitude, longitude, radius_km)
+        candidates = self.filter(
+            latitude__gte=min_lat, latitude__lte=max_lat,
+            longitude__gte=min_lon, longitude__lte=max_lon,
+        )
+        results = []
+        for event in candidates:
+            distance = haversine_km(latitude, longitude, event.latitude, event.longitude)
+            if distance <= radius_km:
+                event.distance_km = round(distance, 1)
+                results.append(event)
+        results.sort(key=lambda event: (event.distance_km, event.starts_at))
+        return results
+
 
 class Event(models.Model):
     class Status(models.TextChoices):
@@ -65,6 +88,19 @@ class Event(models.Model):
     venue_name = models.CharField("nome do local", max_length=120)
     address = models.CharField("endereço", max_length=255)
     city = models.CharField("cidade", max_length=80)
+    cep = models.CharField(
+        "CEP do local",
+        max_length=8,
+        blank=True,
+        default="",
+        validators=[RegexValidator(r"^\d{8}$", "Informe um CEP com 8 dígitos.")],
+        help_text="Com o CEP, o evento aparece nas buscas por proximidade.",
+    )
+    # Calculados a partir do CEP (app/cep.py); o produtor não digita.
+    state = models.CharField("UF", max_length=2, blank=True, default="", editable=False)
+    neighborhood = models.CharField("bairro", max_length=80, blank=True, default="", editable=False)
+    latitude = models.FloatField(null=True, blank=True, editable=False)
+    longitude = models.FloatField(null=True, blank=True, editable=False)
     starts_at = models.DateTimeField("início")
     ends_at = models.DateTimeField("término", null=True, blank=True)
     status = models.CharField(
@@ -80,7 +116,10 @@ class Event(models.Model):
         ordering = ["starts_at"]
         verbose_name = "evento"
         verbose_name_plural = "eventos"
-        indexes = [models.Index(fields=["status", "starts_at"])]
+        indexes = [
+            models.Index(fields=["status", "starts_at"]),
+            models.Index(fields=["latitude", "longitude"]),
+        ]
 
     def __str__(self):
         return self.title
@@ -114,6 +153,11 @@ class Event(models.Model):
     @property
     def is_published(self):
         return self.status == self.Status.PUBLISHED
+
+    @property
+    def has_location(self):
+        """O evento tem coordenadas (aparece nas buscas por raio)?"""
+        return self.latitude is not None and self.longitude is not None
 
     @property
     def has_ended(self):

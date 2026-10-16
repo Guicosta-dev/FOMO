@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
+from .cep import normalize_cep
 from .models import Event, TicketBatch, User
 
 DATETIME_LOCAL = "%Y-%m-%dT%H:%M"  # formato do <input type="datetime-local">
@@ -36,12 +37,21 @@ class EventForm(BootstrapFormMixin, forms.ModelForm):
     propósito: quem define são as views, nunca o navegador.
     """
 
+    # Declarado aqui (e não só no modelo) para aceitar "20040-020" e guardar "20040020".
+    cep = forms.CharField(
+        label="CEP do local",
+        required=False,
+        max_length=9,
+        help_text="Com o CEP, o evento aparece nas buscas por proximidade.",
+    )
+
     class Meta:
         model = Event
         fields = [
             "title",
             "description",
             "venue_name",
+            "cep",
             "address",
             "city",
             "starts_at",
@@ -57,6 +67,15 @@ class EventForm(BootstrapFormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         for name in ("starts_at", "ends_at"):
             self.fields[name].input_formats = [DATETIME_LOCAL, "%Y-%m-%dT%H:%M:%S"]
+
+    def clean_cep(self):
+        value = self.cleaned_data.get("cep", "").strip()
+        if not value:
+            return ""
+        cep = normalize_cep(value)
+        if cep is None:
+            raise forms.ValidationError("CEP inválido. Informe 8 dígitos, ex.: 20040-020.")
+        return cep
 
 
 class BatchForm(BootstrapFormMixin, forms.ModelForm):
