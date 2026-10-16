@@ -10,7 +10,16 @@ from django.utils.functional import cached_property
 from django.views import View
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
+from .cep import (
+    CepServiceError,
+    LocationStatus,
+    apply_cep_location,
+    format_cep,
+    lookup_cep,
+    normalize_cep,
+)
 from .forms import BatchForm, EventForm, LoginForm, OrderForm, SignUpForm
+from .geo import DEFAULT_RADIUS, RADIUS_OPTIONS
 from .models import Event, Order, TicketBatch
 from .services import OrderError, create_order, hold_minutes
 
@@ -55,11 +64,42 @@ class SignUpView(CreateView):
 # =============================================================================
 
 class CatalogView(ListView):
-    """Catálogo público: só eventos publicados que ainda não terminaram."""
+    """Catálogo público: só eventos publicados que ainda não terminaram.
+
+    Filtros por querystring:
+      ?q=texto            busca em título, cidade e descrição
+      ?cep=20040-020      eventos próximos ao CEP do visitante
+      ?raio=25            raio em km (5, 10, 25, 50 ou 100; padrão 25)
+    """
 
     template_name = "events/catalog.html"
     context_object_name = "events"
     paginate_by = 12
+
+    @cached_property
+    def radius(self):
+        try:
+            value = int(self.request.GET.get("raio", ""))
+        except ValueError:
+            return DEFAULT_RADIUS
+        return value if value in RADIUS_OPTIONS else DEFAULT_RADIUS
+
+    @cached_property
+    def near(self):
+        """Resolve o CEP do visitante. Retorna (cep, info, mensagem_de_erro)."""
+        raw = self.request.GET.get("cep", "").strip()
+        if not raw:
+            return None, None, None
+        cep = normalize_cep(raw)
+        if cep is None:
+            return None, None, "CEP inválido. Informe os 8 dígitos, ex.: 20040-020."
+        try:
+            info = lookup_cep(cep)
+        except CepServiceError:
+            return cep, None, "Não foi possível consultar o CEP agora. Tente novamente em instantes."
+        if info is None:
+            return cep, None, "CEP não encontrado."
+        return cep, info, None
 
     def get_queryset(self):
         queryset = Event.objects.published().upcoming().select_related("producer")
@@ -68,11 +108,33 @@ class CatalogView(ListView):
             queryset = queryset.filter(
                 Q(title__icontains=q) | Q(city__icontains=q) | Q(description__icontains=q)
             )
-        return queryset
+
+        _, info, _ = self.near
+        if info is None:
+            return queryset  # sem CEP (ou CEP com problema): catálogo completo
+        if info.has_coordinates:
+            # LISTA ordenada do mais perto para o mais longe, com `distance_km` em cada evento.
+            return queryset.nearby(info.latitude, info.longitude, self.radius)
+        # O serviço de CEP não tem coordenadas para este CEP: filtra pela cidade.
+        return queryset.filter(city__iexact=info.city).filter(
+            Q(state="") | Q(state__iexact=info.state)
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["q"] = self.request.GET.get("q", "").strip()
+        cep, info, error = self.near
+        params = self.request.GET.copy()
+        params.pop("page", None)
+        context.update(
+            q=self.request.GET.get("q", "").strip(),
+            cep=format_cep(cep) if cep else self.request.GET.get("cep", "").strip(),
+            cep_info=info,
+            cep_error=error,
+            location_mode=(None if info is None else "radius" if info.has_coordinates else "city"),
+            radius=self.radius,
+            radius_options=RADIUS_OPTIONS,
+            base_query=params.urlencode(),  # para os links de paginação manterem os filtros
+        )
         return context
 
 
@@ -119,6 +181,41 @@ class OwnEventsMixin(ProducerRequiredMixin):
         return Event.objects.filter(producer=self.request.user)
 
 
+class EventLocationMixin:
+    """Antes de salvar o evento, descobre cidade, UF e coordenadas pelo CEP do local.
+
+    Best effort: se o serviço de CEP falhar, o evento É salvo (sem coordenadas) e o
+    produtor é avisado. A consulta só acontece quando o CEP mudou ou ainda não há
+    coordenadas, para não depender do serviço externo a cada edição.
+    """
+
+    LOCATION_WARNINGS = {
+        LocationStatus.NOT_FOUND: (
+            "CEP não encontrado. O evento foi salvo, mas não aparecerá nas buscas por proximidade."
+        ),
+        LocationStatus.UNAVAILABLE: (
+            "Não foi possível consultar o CEP agora. O evento foi salvo sem localização; "
+            "edite e salve de novo mais tarde para tentar outra vez."
+        ),
+        LocationStatus.NO_COORDINATES: (
+            "Encontramos a cidade pelo CEP, mas não as coordenadas. O evento aparecerá nas "
+            "buscas por cidade, não nas buscas por raio."
+        ),
+    }
+
+    def form_valid(self, form):
+        event = form.instance
+        # Compara com o CEP já salvo (e não com o texto digitado): "20040-020" e
+        # "20040020" são o mesmo CEP e não devem repetir a consulta.
+        cep_changed = event.cep != form.initial.get("cep", "")
+        if cep_changed or (event.cep and event.latitude is None):
+            status = apply_cep_location(event)
+            warning = self.LOCATION_WARNINGS.get(status)
+            if warning:
+                messages.warning(self.request, warning)
+        return super().form_valid(form)
+
+
 class DashboardView(OwnEventsMixin, ListView):
     template_name = "dashboard/event_list.html"
     context_object_name = "events"
@@ -127,7 +224,7 @@ class DashboardView(OwnEventsMixin, ListView):
         return super().get_queryset().order_by("-created_at")
 
 
-class EventCreateView(ProducerRequiredMixin, CreateView):
+class EventCreateView(EventLocationMixin, ProducerRequiredMixin, CreateView):
     model = Event
     form_class = EventForm
     template_name = "dashboard/event_form.html"
@@ -139,7 +236,7 @@ class EventCreateView(ProducerRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class EventUpdateView(OwnEventsMixin, UpdateView):
+class EventUpdateView(EventLocationMixin, OwnEventsMixin, UpdateView):
     form_class = EventForm
     template_name = "dashboard/event_form.html"
     success_url = reverse_lazy("app:dashboard")
