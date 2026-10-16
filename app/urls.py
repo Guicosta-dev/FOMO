@@ -1,5 +1,6 @@
 from django.contrib.auth.views import LogoutView
 from django.urls import path
+from django.views.generic import TemplateView
 
 from . import views
 
@@ -28,4 +29,5 @@ urlpatterns = [
     path("painel/eventos/<int:event_pk>/lotes/", views.BatchListView.as_view(), name="batch_list"),
     path("painel/eventos/<int:event_pk>/lotes/novo/", views.BatchCreateView.as_view(), name="batch_create"),
     path("painel/lotes/<int:pk>/editar/", views.BatchUpdateView.as_view(), name="batch_update"),
+    path("sobre/", TemplateView.as_view(template_name="about.html", extra_context={"active_page": "about"}), name="about"),
 ]

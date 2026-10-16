@@ -1,0 +1,50 @@
+<!-- Banner principal: apresentação do FOMO. -->
+<section class="hero" aria-labelledby="hero-titulo">
+  <div class="container-fomo hero-inner">
+    <div class="hero-copy">
+      <p class="eyebrow hero-eyebrow">
+        <span class="live-dot" aria-hidden="true"></span>
+        Grandes momentos te esperam
+      </p>
+      <h1 id="hero-titulo">
+        O que
+        <br>
+        <span class="text-gradient">você não pode</span>
+        <br>
+        perder?
+      </h1>
+      <p class="hero-description">
+        Descubra shows, festivais e experiências.
+        <br class="d-none d-md-block">
+        O seu próximo momento inesquecível
+        <br class="d-none d-md-block">
+        está a um clique.
+      </p>
+      <a class="btn btn-fomo rounded-pill hero-cta"
+        href="{% url 'app:catalog' %}#eventos">
+        Explorar eventos
+        {% include "includes/icon.html" with name="arrow" %}
+      </a>
+    </div>
+    <span class="hero-note" aria-hidden="true">Viva o
+      <br>
+    agora.</span>
+  </div>
+</section>
+<!-- Categorias: atalhos para o filtro de eventos. -->
+<section class="container-fomo category-section"
+  id="categorias"
+  aria-labelledby="categorias-titulo">
+  <h2 id="categorias-titulo" class="visually-hidden">Explore por categoria</h2>
+  <div class="category-grid">
+    {% for categoria in discovery_categories %}
+      <a class="category-tile"
+        href="{% url 'app:catalog' %}?q={{ categoria.query|urlencode }}">
+        {% include "includes/icon.html" with name=categoria.icone|default:"calendar" %}
+        <span>{{ categoria.nome }}</span>
+      </a>
+    {% empty %}
+      <p class="text-muted-fomo">As categorias estarão disponíveis em breve.</p>
+    {% endfor %}
+  </div>
+</section>

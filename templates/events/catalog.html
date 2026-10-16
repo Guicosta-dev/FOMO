@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}
+  FOMO | O que você não pode perder?
+{% endblock %}
+{% block content %}
+  {% if show_hero %}
+    {% include "includes/home_hero.html" %}
+  {% endif %}
+  <div class="container-fomo home-sections">
+    <section class="section-block" id="eventos" aria-labelledby="eventos-titulo">
+      <div class="section-heading">
+        <h1 id="eventos-titulo" class="h2">
+          {% if q %}
+            Encontre seu próximo <span class="text-orange">momento.</span>
+          {% else %}
+            Eventos em <span class="text-orange">destaque</span>
+          {% endif %}
+        </h1>
+        {% if user.is_producer %}
+          <a class="text-link"
+            href="{% url 'app:dashboard' %}">Organizar eventos {% include "includes/icon.html" with name="arrow" %}</a>
+        {% endif %}
+      </div>
+      <form method="get"
+        action="{% url 'app:catalog' %}"
+        class="panel filter-panel"
+        role="search">
+        <div class="row g-3 align-items-end">
+          <div class="col-12 col-md-9">
+            <label class="form-label" for="q">Evento, artista, local ou cidade</label>
+            <input class="form-control"
+              id="q"
+              name="q"
+              type="search"
+              value="{{ q }}"
+              maxlength="150"
+              placeholder="O que você quer viver?">
+          </div>
+          <div class="col-12 col-md-3">
+            <button type="submit"
+              class="btn btn-fomo w-100">{% include "includes/icon.html" with name="search" %}Buscar</button>
+          </div>
+        </div>
+        {% if q %}
+          <a class="text-link mt-3" href="{% url 'app:catalog' %}">Limpar busca</a>
+        {% endif %}
+      </form>
+      {% if events %}
+        <p class="filter-summary">
+          {{ paginator.count }} evento{{ paginator.count|pluralize }} encontrado{{ paginator.count|pluralize }}
+          {% if q %}
+            para “{{ q }}”
+          {% endif %}
+          .
+        </p>
+        <div class="row g-4">
+          {% for event in events %}
+            <div class="col-12 col-sm-6 col-lg-4 col-xl-3">{% include "includes/event_card.html" %}</div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state featured-empty">
+          <span class="empty-icon">{% include "includes/icon.html" with name="ticket" %}</span>
+          <h2 class="h4">
+            {% if q %}
+              Nenhum evento encontrado.
+            {% else %}
+              O próximo grande momento vem aí.
+            {% endif %}
+          </h2>
+          <p>
+            {% if q %}
+              Tente outro nome, local ou cidade.
+            {% else %}
+              Ainda não há eventos publicados. Volte em breve para descobrir o que você não vai querer perder.
+            {% endif %}
+          </p>
+          {% if user.is_producer %}
+            <a class="btn btn-outline-fomo"
+              href="{% url 'app:event_create' %}">Criar meu primeiro evento</a>
+          {% else %}
+            <span class="status-pill">Novidades em breve</span>
+          {% endif %}
+        </div>
+      {% endif %}
+      {% if is_paginated %}
+        <nav aria-label="Páginas de eventos">
+          <ul class="pagination">
+            {% if page_obj.has_previous %}
+              <li class="page-item"><a class="page-link"
+                                      href="{% url 'app:catalog' %}?q={{ q|urlencode }}&amp;page={{ page_obj.previous_page_number }}">Anterior</a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link" aria-current="page">{{ page_obj.number }} de {{ paginator.num_pages }}</span></li>
+            {% if page_obj.has_next %}
+              <li class="page-item"><a class="page-link"
+                                      href="{% url 'app:catalog' %}?q={{ q|urlencode }}&amp;page={{ page_obj.next_page_number }}">Próxima</a></li>
+            {% endif %}
+          </ul>
+        </nav>
+      {% endif %}
+    </section>
+    {% if show_hero %}
+      {% include "includes/mobile_banner.html" %}
+    {% endif %}
+  </div>
+{% endblock %}

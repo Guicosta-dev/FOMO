@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}
+  Criar conta | FOMO
+{% endblock %}
+{% block content %}
+  <!-- Cadastro: campos e erros fornecidos pelo formulário Django. -->
+  <div class="auth-layout">
+    <aside class="auth-art">
+      <div>
+        <p class="eyebrow">Faça parte</p>
+        <h2>
+          Menos ficar de fora.
+          <br>
+          <span class="text-orange">Mais estar lá.</span>
+        </h2>
+        <p>Descubra experiências que vão entrar para a sua história.</p>
+      </div>
+    </aside>
+    <section class="auth-form-section" aria-labelledby="cadastro-titulo">
+      <div class="auth-form">
+        <p class="eyebrow">Seu lugar é aqui</p>
+        <h1 id="cadastro-titulo">Faça parte do <span class="text-violet">FOMO.</span></h1>
+        <p>Crie sua conta para descobrir, favoritar e participar.</p>
+        <form method="post" class="django-form" action="{% url 'app:signup' %}">
+          {% csrf_token %}
+          {% include "includes/form_fields.html" %}
+          <button class="btn btn-violet"
+            type="submit">Criar minha conta {% include "includes/icon.html" with name="arrow" %}</button>
+        </form>
+        <p class="auth-switch">Já tem conta? <a href="{% url 'app:login' %}">Entrar</a></p>
+      </div>
+    </section>
+  </div>
+{% endblock %}
