@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}
+  Acesso restrito | FOMO
+{% endblock %}
+{% block content %}
+  <div class="container-fomo page-content">
+    <div class="empty-state">
+      <span class="empty-icon">{% include "includes/icon.html" with name="lock" %}</span>
+      <h1 class="h3">Esta área é de produtores.</h1>
+      <p>Sua conta não tem permissão para esta ação.</p>
+      <a class="btn btn-violet" href="{% url 'app:catalog' %}">Voltar ao FOMO</a>
+    </div>
+  </div>
+{% endblock %}

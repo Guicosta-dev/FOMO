@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}
+  {% if object %}
+    Editar
+  {% else %}
+    Criar
+  {% endif %}
+  lote | FOMO
+{% endblock %}
+{% block content %}
+  <div class="container-fomo page-content">
+    <nav aria-label="Localização">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'app:dashboard' %}">Painel</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'app:batch_list' event.pk %}">Lotes</a></li>
+        <li class="breadcrumb-item active">
+          {% if object %}
+            Editar
+          {% else %}
+            Criar
+          {% endif %}
+        </li>
+      </ol>
+    </nav>
+    <div class="page-heading">
+      <p class="eyebrow">{{ event.title }}</p>
+      <h1>
+        {% if object %}
+          Edite
+        {% else %}
+          Crie
+        {% endif %}
+        um <span class="text-violet">lote.</span>
+      </h1>
+    </div>
+    <div class="row g-4">
+      <div class="col-12 col-lg-8">
+        <form method="post" class="panel django-form">
+          {% csrf_token %}
+          {% include "includes/form_fields.html" %}
+          <div class="form-actions">
+            <button class="btn btn-fomo" type="submit">Salvar lote</button>
+            <a class="btn btn-quiet" href="{% url 'app:batch_list' event.pk %}">Cancelar</a>
+          </div>
+        </form>
+      </div>
+      <div class="col-12 col-lg-4">
+        <aside class="helper-panel">
+          <h2>Estoque com clareza.</h2>
+          <p>Use preço 0 para um lote gratuito. Os ingressos reservados e confirmados são contabilizados automaticamente.</p>
+          <p>Você pode aumentar o total, mas não reduzi-lo abaixo dos ingressos já ocupados.</p>
+          <p>Desativar o lote interrompe novas vendas sem apagar pedidos existentes.</p>
+        </aside>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}
+  Meus pedidos | FOMO
+{% endblock %}
+{% block content %}
+  <div class="container-fomo page-content">
+    <div class="page-heading">
+      <p class="eyebrow">Suas próximas histórias</p>
+      <h1>Meus <span class="text-violet">pedidos.</span></h1>
+      <p>Acompanhe suas reservas e experiências confirmadas.</p>
+    </div>
+    {% if orders %}
+      <div class="row g-4">
+        {% for order in orders %}
+          <div class="col-12 col-md-6 col-lg-4">
+            <article class="panel h-100">
+              <p class="eyebrow">Pedido {{ order.short_code }}</p>
+              <h2 class="h4">{{ order.event.title }}</h2>
+              <p class="event-meta mt-3">{% include "includes/icon.html" with name="calendar" %}{{ order.event.starts_at|date:'d/m/Y H:i' }}</p>
+              <span class="badge-status order-status-{{ order.status }}">{{ order.get_status_display }}</span>
+              <p class="price-large mt-3">R$ {{ order.total|floatformat:2 }}</p>
+              <p class="small text-muted-fomo">Criado em {{ order.created_at|date:'d/m/Y H:i' }}</p>
+              <a class="btn btn-outline-fomo"
+                href="{% url 'app:order_detail' order.public_id %}">Ver pedido</a>
+            </article>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <span class="empty-icon">{% include "includes/icon.html" with name="ticket" %}</span>
+        <h2 class="h4">A próxima história ainda vai começar.</h2>
+        <p>Você ainda não tem pedidos. Explore a agenda e escolha sua próxima experiência.</p>
+        <a class="btn btn-fomo" href="{% url 'app:catalog' %}">Explorar eventos</a>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

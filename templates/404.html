@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}
+  Página não encontrada | FOMO
+{% endblock %}
+{% block content %}
+  <div class="container-fomo page-content">
+    <div class="empty-state">
+      <span class="empty-icon">{% include "includes/icon.html" with name="search" %}</span>
+      <h1 class="h3">Este momento não está disponível.</h1>
+      <p>A página pode ter sido removida ou não estar disponível para sua conta.</p>
+      <a class="btn btn-fomo" href="{% url 'app:catalog' %}">Explorar eventos</a>
+    </div>
+  </div>
+{% endblock %}

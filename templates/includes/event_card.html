@@ -1,0 +1,46 @@
+{# O mesmo card é usado no catálogo e nos favoritos. #}
+<article class="event-card">
+  <a class="event-image"
+    href="{% url 'app:event_detail' event.slug %}"
+    aria-label="Ver {{ event.title }}">
+    <div class="event-image-placeholder">{% include "includes/icon.html" with name="ticket" %}</div>
+  </a>
+  <div class="event-favorite">
+    {% if user.is_authenticated %}
+    {% comment %}
+      <form method="post" action="{% url 'app:favorite_toggle' event.slug %}">
+    {% endcomment %}    
+        {% csrf_token %}
+        <button class="icon-button{% if event.is_favorite %} is-favorite{% endif %}"
+          type="submit"
+          aria-label="{% if event.is_favorite %}Remover dos{% else %}Adicionar aos{% endif %} favoritos"
+          aria-pressed="{{ event.is_favorite|yesno:'true,false' }}">
+          {% include "includes/icon.html" with name="heart" %}
+        </button>
+      </form>
+    {% else %}
+      <a class="icon-button"
+        href="{% url 'app:login' %}?next={{ event.get_absolute_url|urlencode }}"
+        aria-label="Entrar para favoritar">
+        {% include "includes/icon.html" with name="heart" %}
+      </a>
+    {% endif %}
+  </div>
+  <div class="event-body">
+    <span class="category-pill">{{ event.city }}</span>
+    <h3><a href="{% url 'app:event_detail' event.slug %}">{{ event.title }}</a></h3>
+    <p class="event-meta">{% include "includes/icon.html" with name="calendar" %}{{ event.starts_at|date:'d/m/Y H:i' }}</p>
+    <p class="event-meta">{% include "includes/icon.html" with name="pin" %}{{ event.venue_name }}</p>
+    <p class="event-price">
+      {% if event.min_price == 0 %}
+        Entrada gratuita
+      {% elif event.min_price != None %}
+        A partir de R$ {{ event.min_price|floatformat:2 }}
+      {% else %}
+        Consulte os lotes
+      {% endif %}
+    </p>
+    <a class="btn btn-fomo btn-sm"
+      href="{% url 'app:event_detail' event.slug %}">Ver ingressos</a>
+  </div>
+</article>
