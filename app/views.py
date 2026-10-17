@@ -125,8 +125,11 @@ class CatalogView(ListView):
         cep, info, error = self.near
         params = self.request.GET.copy()
         params.pop("page", None)
+        q = self.request.GET.get("q", "").strip()
+        page = context.get("page_obj")
         context.update(
-            q=self.request.GET.get("q", "").strip(),
+            q=q,
+            show_hero=not q and (page is None or page.number == 1),
             cep=format_cep(cep) if cep else self.request.GET.get("cep", "").strip(),
             cep_info=info,
             cep_error=error,
