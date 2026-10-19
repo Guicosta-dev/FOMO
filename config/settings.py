@@ -106,3 +106,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Faz as mensagens de erro usarem a classe "alert-danger" do Bootstrap.
 MESSAGE_TAGS = {messages_constants.ERROR: "danger"}
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"

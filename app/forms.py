@@ -56,11 +56,13 @@ class EventForm(BootstrapFormMixin, forms.ModelForm):
             "city",
             "starts_at",
             "ends_at",
+            "image"
         ]
         widgets = {
             "description": forms.Textarea(attrs={"rows": 5}),
             "starts_at": forms.DateTimeInput(attrs={"type": "datetime-local"}, format=DATETIME_LOCAL),
             "ends_at": forms.DateTimeInput(attrs={"type": "datetime-local"}, format=DATETIME_LOCAL),
+            "image": forms.ClearableFileInput(attrs={"class": "form-control", "accept": "image/*"}),
         }
 
     def __init__(self, *args, **kwargs):

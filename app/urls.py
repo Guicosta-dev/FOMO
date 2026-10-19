@@ -1,6 +1,8 @@
 from django.contrib.auth.views import LogoutView
 from django.urls import path
 from django.views.generic import TemplateView
+from django.conf import settings
+from django.conf.urls.static import static
 
 from . import views
 
@@ -30,4 +32,4 @@ urlpatterns = [
     path("painel/eventos/<int:event_pk>/lotes/novo/", views.BatchCreateView.as_view(), name="batch_create"),
     path("painel/lotes/<int:pk>/editar/", views.BatchUpdateView.as_view(), name="batch_update"),
     path("sobre/", TemplateView.as_view(template_name="about.html", extra_context={"active_page": "about"}), name="about"),
-]
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
