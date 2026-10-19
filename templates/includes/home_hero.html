@@ -31,6 +31,25 @@
     agora.</span>
   </div>
 </section>
+{% if featured_events %}
+<!-- Destaques: carrossel de eventos. -->
+<section class="hero-carousel" aria-label="Eventos em destaque">
+  <div class="swiper hero-swiper">
+    <div class="swiper-wrapper">
+      {% for event in featured_events %}
+        <div class="swiper-slide">
+          <a href="{{ event.get_absolute_url }}" aria-label="{{ event.title }}">
+            <img src="{{ event.image.url }}" alt="{{ event.title }}">
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+    <button type="button" class="swiper-button-prev" aria-label="Anterior"></button>
+    <button type="button" class="swiper-button-next" aria-label="Próximo"></button>
+    <div class="swiper-pagination"></div>
+  </div>
+</section>
+{% endif %}
 <!-- Categorias: atalhos para o filtro de eventos. -->
 <section class="container-fomo category-section"
   id="categorias"

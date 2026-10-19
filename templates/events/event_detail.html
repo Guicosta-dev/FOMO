@@ -15,15 +15,15 @@
     {% endif %}
     <div class="row g-4 g-xl-5">
       <div class="col-12 col-lg-7">
-    {% if event.image %}
+      {% if event.image %}
         <div class="detail-hero">
           <img src="{{ event.image.url }}" alt="{{ event.title }}" class="detail-hero__img">
         </div>
-    {% else %}
+      {% else %}
         <div class="detail-placeholder" aria-hidden="true">
           {% include "includes/icon.html" with name="ticket" %}
         </div>
-    {% endif %}
+      {% endif %}
         <span class="category-pill">{{ event.city }}</span>
         <h1 class="detail-title">{{ event.title }}</h1>
         <div class="detail-meta">

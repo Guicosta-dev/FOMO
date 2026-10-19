@@ -75,6 +75,16 @@ class CatalogView(ListView):
     template_name = "events/catalog.html"
     context_object_name = "events"
     paginate_by = 12
+    
+    def get_featured_events(self):
+        """Eventos com imagem para o carrossel da home (só roda quando o hero aparece)."""
+        return list(
+            Event.objects.published()
+            .upcoming()
+            .filter(image__isnull=False)
+            .exclude(image="")
+            .order_by("starts_at")[:8]
+        )
 
     @cached_property
     def radius(self):
@@ -127,16 +137,18 @@ class CatalogView(ListView):
         params.pop("page", None)
         q = self.request.GET.get("q", "").strip()
         page = context.get("page_obj")
+        show_hero = not q and (page is None or page.number == 1)
         context.update(
             q=q,
-            show_hero=not q and (page is None or page.number == 1),
+            show_hero=show_hero,
+            featured_events=self.get_featured_events() if show_hero else [],
             cep=format_cep(cep) if cep else self.request.GET.get("cep", "").strip(),
             cep_info=info,
             cep_error=error,
             location_mode=(None if info is None else "radius" if info.has_coordinates else "city"),
             radius=self.radius,
             radius_options=RADIUS_OPTIONS,
-            base_query=params.urlencode(),  # para os links de paginação manterem os filtros
+            base_query=params.urlencode(),
         )
         return context
 
