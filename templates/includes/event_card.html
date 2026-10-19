@@ -3,13 +3,17 @@
   <a class="event-image"
     href="{% url 'app:event_detail' event.slug %}"
     aria-label="Ver {{ event.title }}">
-    <div class="event-image-placeholder">{% include "includes/icon.html" with name="ticket" %}</div>
+{% if event.image %}
+  <img src="{{ event.image.url }}" alt="{{ event.title }}" loading="lazy">
+{% else %}
+  <div class="event-image-placeholder">{% include "includes/icon.html" with name="ticket" %}</div>
+{% endif %}
   </a>
   <div class="event-favorite">
     {% if user.is_authenticated %}
     {% comment %}
       <form method="post" action="{% url 'app:favorite_toggle' event.slug %}">
-    {% endcomment %}    
+    {% endcomment %}  
         {% csrf_token %}
         <button class="icon-button{% if event.is_favorite %} is-favorite{% endif %}"
           type="submit"

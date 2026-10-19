@@ -35,7 +35,7 @@
     </div>
     <div class="row g-4">
       <div class="col-12 col-lg-8">
-        <form class="panel django-form" method="post">
+        <form class="panel django-form" method="post" enctype="multipart/form-data">
           {% csrf_token %}
           {% include "includes/form_fields.html" %}
           <div class="form-actions">

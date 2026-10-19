@@ -71,6 +71,8 @@ class EventQuerySet(models.QuerySet):
 
 
 class Event(models.Model):
+    image = models.ImageField(upload_to="events/", blank=True, null=True)
+    
     class Status(models.TextChoices):
         DRAFT = "draft", "Rascunho"
         PUBLISHED = "published", "Publicado"
