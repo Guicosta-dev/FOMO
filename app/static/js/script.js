@@ -93,3 +93,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+// Carrossel de destaques da home.
+document.addEventListener("DOMContentLoaded", () => {
+  const el = document.querySelector(".hero-swiper");
+  if (!el || typeof Swiper === "undefined") return;
+
+  const total = el.querySelectorAll(".swiper-slide").length;
+
+  new Swiper(el, {
+    centeredSlides: true,
+    slidesPerView: "auto",
+    spaceBetween: 16,
+    loop: total >= 5,
+    loopAdditionalSlides: 2,
+    watchOverflow: true,
+    speed: 500,
+    autoplay: total > 1 ? { delay: 5000, disableOnInteraction: false } : false,
+    navigation: {
+      nextEl: el.querySelector(".swiper-button-next"),
+      prevEl: el.querySelector(".swiper-button-prev"),
+    },
+    pagination: { el: el.querySelector(".swiper-pagination"), clickable: true },
+  });
+});
