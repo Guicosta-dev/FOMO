@@ -94,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 // Carrossel de destaques da home.
+// Carrossel de destaques da home.
 document.addEventListener("DOMContentLoaded", () => {
   const el = document.querySelector(".hero-swiper");
   if (!el || typeof Swiper === "undefined") return;
@@ -104,7 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
     centeredSlides: true,
     slidesPerView: "auto",
     spaceBetween: 16,
-    loop: total >= 5,
+    loop: total >= 5, // Mantém a regra original: só ativa com 5+
     loopAdditionalSlides: 2,
     watchOverflow: true,
     speed: 500,

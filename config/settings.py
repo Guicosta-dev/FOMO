@@ -27,8 +27,7 @@ if not SECRET_KEY:
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.environ.get('Guidev017.pythonanywhere.com',"DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
-    if host.strip()
+    for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "Guidev017.pythonanywhere.com,localhost,127.0.0.1").split(",")
 ]
 
 INSTALLED_APPS = [

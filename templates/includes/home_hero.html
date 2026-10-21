@@ -1,5 +1,7 @@
-<!-- Banner principal: apresentação do FOMO. -->
-<section class="hero" aria-labelledby="hero-titulo">
+{% load static %}
+
+<!-- Banner principal original (oculto para dar lugar ao carrossel) -->
+<section class="hero d-none" aria-labelledby="hero-titulo">
   <div class="container-fomo hero-inner">
     <div class="hero-copy">
       <p class="eyebrow hero-eyebrow">
@@ -31,9 +33,10 @@
     agora.</span>
   </div>
 </section>
+
 {% if featured_events %}
-<!-- Destaques: carrossel de eventos. -->
-<section class="hero-carousel" aria-label="Eventos em destaque">
+<!-- Destaques: carrossel de eventos agora como banner principal -->
+<section class="hero-carousel pt-0" aria-label="Eventos em destaque">
   <div class="swiper hero-swiper">
     <div class="swiper-wrapper">
       {% for event in featured_events %}
@@ -50,10 +53,9 @@
   </div>
 </section>
 {% endif %}
+
 <!-- Categorias: atalhos para o filtro de eventos. -->
-<section class="container-fomo category-section"
-  id="categorias"
-  aria-labelledby="categorias-titulo">
+<section class="container-fomo category-section mt-4" id="categorias" aria-labelledby="categorias-titulo">
   <h2 id="categorias-titulo" class="visually-hidden">Explore por categoria</h2>
   <div class="category-grid">
     {% for categoria in discovery_categories %}
