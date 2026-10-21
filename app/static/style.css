@@ -2256,3 +2256,20 @@ summary:focus-visible {
   cursor: pointer;
 }
 }
+.hero-carousel {
+  padding: 2rem 0;
+  overflow: hidden;
+  background: #080808; /* Garante que o fundo combine com o site */
+}
+
+.hero-swiper .swiper-slide {
+  width: min(85vw, 900px);
+  height: 450px;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  overflow: hidden;
+  transform: scale(.85);
+  opacity: .85; /* <-- MUDAR AQUI */
+  transition: transform .4s, opacity .4s;
+}
+
