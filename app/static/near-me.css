@@ -1,0 +1,6 @@
+/* Distância mostrada no cartão de cada evento (só aparece na busca por CEP). */
+.event-distance {
+  display: inline-block;
+  font-size: 0.85rem;
+  color: var(--bs-secondary-color);
+}

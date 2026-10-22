@@ -27,6 +27,7 @@ urlpatterns = [
     path("painel/eventos/<int:pk>/editar/", views.EventUpdateView.as_view(), name="event_update"),
     path("painel/eventos/<int:pk>/publicar/", views.EventPublishView.as_view(), name="event_publish"),
     path("painel/eventos/<int:pk>/despublicar/", views.EventUnpublishView.as_view(), name="event_unpublish"),
+    path("painel/eventos/<int:pk>/excluir/", views.EventDeleteView.as_view(), name="event_delete"),
     # Lotes (produtor)
     path("painel/eventos/<int:event_pk>/lotes/", views.BatchListView.as_view(), name="batch_list"),
     path("painel/eventos/<int:event_pk>/lotes/novo/", views.BatchCreateView.as_view(), name="batch_create"),

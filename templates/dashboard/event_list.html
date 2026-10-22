@@ -31,6 +31,7 @@
                     <a class="btn btn-outline-fomo"
                       href="{% url 'app:event_update' event.pk %}">Editar</a>
                     <a class="btn btn-quiet" href="{% url 'app:batch_list' event.pk %}">Lotes</a>
+                    <a class="btn btn-outline-fomo btn-sm" href="{% url 'app:event_delete' event.pk %}">Excluir</a>
                     {% if event.is_published %}
                       <form method="post" action="{% url 'app:event_unpublish' event.pk %}">
                         {% csrf_token %}

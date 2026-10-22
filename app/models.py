@@ -114,6 +114,11 @@ class Event(models.Model):
 
     objects = EventQuerySet.as_manager()
 
+    @property
+    def min_price(self):
+        """Menor preço entre os lotes ativos (None se não houver lote ativo)."""
+        return self.batches.filter(is_active=True).aggregate(menor=Min("price"))["menor"]
+
     class Meta:
         ordering = ["starts_at"]
         verbose_name = "evento"
