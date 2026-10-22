@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}
   FOMO | O que você não pode perder?
 {% endblock %}
@@ -21,12 +22,14 @@
             href="{% url 'app:dashboard' %}">Organizar eventos {% include "includes/icon.html" with name="arrow" %}</a>
         {% endif %}
       </div>
-      <form method="get"
-        action="{% url 'app:catalog' %}"
+           <form method="get"
+        action="{% url 'app:catalog' %}#eventos"
         class="panel filter-panel"
-        role="search">
+        role="search"
+        data-near-form
+        data-autosubmit>
         <div class="row g-3 align-items-end">
-          <div class="col-12 col-md-9">
+          <div class="col-12 col-md-5">
             <label class="form-label" for="q">Evento, artista, local ou cidade</label>
             <input class="form-control"
               id="q"
@@ -36,22 +39,53 @@
               maxlength="150"
               placeholder="O que você quer viver?">
           </div>
-          <div class="col-12 col-md-3">
-            <button type="submit"
-              class="btn btn-fomo w-100">{% include "includes/icon.html" with name="search" %}Buscar</button>
+          <div class="col-6 col-md-3">
+            <label class="form-label" for="cep">Seu CEP</label>
+            <input class="form-control"
+              id="cep"
+              name="cep"
+              type="text"
+              inputmode="numeric"
+              autocomplete="postal-code"
+              maxlength="9"
+              placeholder="00000-000"
+              pattern="\d{5}-?\d{3}"
+              value="{{ cep }}"
+              data-cep-input
+              {% if cep_error %}aria-invalid="true" aria-describedby="cep-status"{% endif %}>
+          </div>
+          <div class="col-6 col-md-2">
+            <label class="form-label" for="raio">Distância</label>
+            <select class="form-select" id="raio" name="raio" data-radius>
+              {% for option in radius_options %}
+                <option value="{{ option }}"{% if option == radius %} selected{% endif %}>Até {{ option }} km</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12 col-md-2">
+            <button type="submit" class="btn btn-fomo w-100" data-submit>
+              {% include "includes/icon.html" with name="search" %}<span data-submit-label data-label="Buscar">Buscar</span>
+            </button>
           </div>
         </div>
-        {% if q %}
-          <a class="text-link mt-3" href="{% url 'app:catalog' %}">Limpar busca</a>
+        {% if q or cep or cep_error %}
+          <a class="text-link mt-3" href="{% url 'app:catalog' %}#eventos">Limpar filtros</a>
         {% endif %}
       </form>
+      <div id="cep-status" aria-live="polite">
+        {% if cep_error %}
+          <div class="alert alert-warning mt-3 mb-0" role="alert">{{ cep_error }}</div>
+        {% endif %}
+      </div>
       {% if events %}
         <p class="filter-summary">
-          {{ paginator.count }} evento{{ paginator.count|pluralize }} encontrado{{ paginator.count|pluralize }}
-          {% if q %}
-            para “{{ q }}”
+          {% if cep_info and location_mode == "radius" %}
+            {{ paginator.count }} evento{{ paginator.count|pluralize }} até {{ radius }} km de {% if cep_info.neighborhood %}{{ cep_info.neighborhood }}, {% endif %}{{ cep_info.city }} - {{ cep_info.state }}, do mais perto para o mais longe.
+          {% elif cep_info %}
+            Não encontramos as coordenadas deste CEP, então mostramos os eventos de {{ cep_info.city }} ({{ paginator.count }} evento{{ paginator.count|pluralize }}).
+          {% else %}
+            {{ paginator.count }} evento{{ paginator.count|pluralize }} encontrado{{ paginator.count|pluralize }}{% if q %} para “{{ q }}”{% endif %}.
           {% endif %}
-          .
         </p>
         <div class="row g-4">
           {% for event in events %}
@@ -62,20 +96,30 @@
         <div class="empty-state featured-empty">
           <span class="empty-icon">{% include "includes/icon.html" with name="ticket" %}</span>
           <h2 class="h4">
-            {% if q %}
+            {% if cep_info and location_mode == "radius" %}
+              Nenhum evento até {{ radius }} km de você.
+            {% elif cep_info %}
+              Nenhum evento em {{ cep_info.city }}.
+            {% elif q %}
               Nenhum evento encontrado.
             {% else %}
               O próximo grande momento vem aí.
             {% endif %}
           </h2>
           <p>
-            {% if q %}
+            {% if cep_info and location_mode == "radius" %}
+              Aumente a distância ou limpe os filtros para ver todos os eventos.
+            {% elif cep_info %}
+              Limpe o CEP para ver eventos de outras cidades.
+            {% elif q %}
               Tente outro nome, local ou cidade.
             {% else %}
               Ainda não há eventos publicados. Volte em breve para descobrir o que você não vai querer perder.
             {% endif %}
           </p>
-          {% if user.is_producer %}
+          {% if q or cep_info %}
+            <a class="btn btn-outline-fomo" href="{% url 'app:catalog' %}#eventos">Ver todos os eventos</a>
+          {% elif user.is_producer %}
             <a class="btn btn-outline-fomo"
               href="{% url 'app:event_create' %}">Criar meu primeiro evento</a>
           {% else %}
@@ -88,12 +132,12 @@
           <ul class="pagination">
             {% if page_obj.has_previous %}
               <li class="page-item"><a class="page-link"
-                                      href="{% url 'app:catalog' %}?q={{ q|urlencode }}&amp;page={{ page_obj.previous_page_number }}">Anterior</a></li>
+                                      href="?{% if base_query %}{{ base_query }}&amp;{% endif %}page={{ page_obj.previous_page_number }}#eventos">Anterior</a></li>
             {% endif %}
             <li class="page-item active"><span class="page-link" aria-current="page">{{ page_obj.number }} de {{ paginator.num_pages }}</span></li>
             {% if page_obj.has_next %}
               <li class="page-item"><a class="page-link"
-                                      href="{% url 'app:catalog' %}?q={{ q|urlencode }}&amp;page={{ page_obj.next_page_number }}">Próxima</a></li>
+                                      href="?{% if base_query %}{{ base_query }}&amp;{% endif %}page={{ page_obj.next_page_number }}#eventos">Próxima</a></li>
             {% endif %}
           </ul>
         </nav>

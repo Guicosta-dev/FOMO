@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="{% static 'vendor/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/swiper-bundle.min.css' %}">
     <link rel="stylesheet" href="{% static 'style.css' %}">
+    <link rel="stylesheet" href="{% static 'near-me.css' %}">
     {% block extra_css %}{% endblock %}
   </head>
   <body>
@@ -48,9 +49,53 @@
                                    href="{% url 'app:catalog' %}#eventos">Eventos</a></li>
             <li class="nav-item"><a class="nav-link"
                                    href="{% url 'app:catalog' %}#categorias">Categorias</a></li>
+            <li class="nav-item dropdown near-nav">
+              <a class="nav-link dropdown-toggle {% if cep_info %}active{% endif %}"
+                href="{% url 'app:catalog' %}#eventos"
+                role="button"
+                data-bs-toggle="dropdown"
+                data-bs-auto-close="outside"
+                aria-expanded="false">
+                {% include "includes/icon.html" with name="pin" %}
+                {% if cep_info %}Perto de {{ cep_info.city }}{% else %}Eventos perto de você{% endif %}
+              </a>
+              <div class="dropdown-menu near-menu p-3">
+                <form method="get"
+                  action="{% url 'app:catalog' %}#eventos"
+                  data-near-form
+                  data-remember>
+                  <p class="small text-secondary mb-3">Informe seu CEP e veja primeiro os eventos mais próximos.</p>
+                  <label class="form-label" for="nav-cep">Seu CEP</label>
+                  <input class="form-control mb-3"
+                    id="nav-cep"
+                    name="cep"
+                    type="text"
+                    inputmode="numeric"
+                    autocomplete="postal-code"
+                    maxlength="9"
+                    placeholder="00000-000"
+                    pattern="\d{5}-?\d{3}"
+                    required
+                    value="{{ cep|default:'' }}"
+                    data-cep-input>
+                  <label class="form-label" for="nav-raio">Distância</label>
+                  <select class="form-select mb-3" id="nav-raio" name="raio" data-radius>
+                    <option value="5"{% if radius|default:25 == 5 %} selected{% endif %}>Até 5 km</option>
+                    <option value="10"{% if radius|default:25 == 10 %} selected{% endif %}>Até 10 km</option>
+                    <option value="25"{% if radius|default:25 == 25 %} selected{% endif %}>Até 25 km</option>
+                    <option value="50"{% if radius|default:25 == 50 %} selected{% endif %}>Até 50 km</option>
+                    <option value="100"{% if radius|default:25 == 100 %} selected{% endif %}>Até 100 km</option>
+                  </select>
+                  <button type="submit" class="btn btn-fomo w-100" data-submit>
+                    <span data-submit-label data-label="Ver eventos">Ver eventos</span>
+                  </button>
+                </form>
+              </div>
+            </li>
             <li class="nav-item"><a class="nav-link {% if active_page == 'about' %}active{% endif %}"
                                    {% if active_page == 'about' %}aria-current="page"{% endif %}
                                    href="{% url 'app:about' %}">Sobre</a></li>
+                    
           </ul>
           <div class="header-actions">
             <form class="header-search"
@@ -169,6 +214,7 @@
     <script src="{% static 'vendor/bootstrap.bundle.min.js' %}" defer></script>
     <script src="{% static 'vendor/swiper-bundle.min.js' %}" defer></script>
     <script src="{% static 'js/script.js' %}" defer></script>
+    <script src="{% static 'js/cep-near.js' %}" defer></script>
     {% block extra_js %}{% endblock %}
   </body>
 </html>

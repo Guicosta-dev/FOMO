@@ -8,7 +8,8 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils.functional import cached_property
 from django.views import View
-from django.views.generic import CreateView, DetailView, ListView, UpdateView
+from django.db.models import ProtectedError, Q
+from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from .cep import (
     CepServiceError,
@@ -259,6 +260,23 @@ class EventUpdateView(EventLocationMixin, OwnEventsMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, "Evento atualizado.")
         return super().form_valid(form)
+
+
+class EventDeleteView(OwnEventsMixin, DeleteView):
+    template_name = "dashboard/event_confirm_delete.html"
+    success_url = reverse_lazy("app:dashboard")
+
+    def form_valid(self, form):
+        try:
+            response = super().form_valid(form)
+        except ProtectedError:
+            messages.error(
+                self.request,
+                "Este evento já tem pedidos e não pode ser excluído. Despublique-o.",
+            )
+            return redirect("app:dashboard")
+        messages.success(self.request, "Evento excluído.")
+        return response
 
 
 class EventPublishView(ProducerRequiredMixin, View):
