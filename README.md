@@ -4,9 +4,6 @@
 
 **Demo online:** https://guidev017.pythonanywhere.com/
 
-![Home do FOMO com carrossel de eventos em destaque](docs/screenshots/home.png)
-![Catálogo com busca por CEP e distância](docs/screenshots/catalogo.png)
-
 > ⚠️ Projeto acadêmico/de portfólio, desenvolvido em equipe. Ainda **não há pagamento real**: pedidos pagos ficam pendentes com reserva temporária, e a confirmação é simulada pelo painel admin.
 
 ---
