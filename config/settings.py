@@ -25,10 +25,14 @@ if not SECRET_KEY:
             "Defina DJANGO_SECRET_KEY no arquivo .env (veja .env.example)."
         )
 
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "Guidev017.pythonanywhere.com,localhost,127.0.0.1").split(",")
-]
+
+def _env_list(name, default=""):
+    """Lê uma variável de ambiente com valores separados por vírgula."""
+    return [item.strip() for item in os.environ.get(name, default).split(",") if item.strip()]
+
+
+ALLOWED_HOSTS = _env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
+CSRF_TRUSTED_ORIGINS = _env_list("DJANGO_CSRF_TRUSTED_ORIGINS")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -59,13 +63,12 @@ TEMPLATES = [
         "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
-                     "context_processors": [
-                                             "django.template.context_processors.request",
-                                             "django.contrib.auth.context_processors.auth",
-                                             "django.contrib.messages.context_processors.messages",
-                                            "app.context_processors.branding",
-                    ],
-   
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                "app.context_processors.branding",
+            ],
         },
     },
 ]
@@ -98,8 +101,6 @@ TIME_ZONE = "America/Sao_Paulo"
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -109,5 +110,11 @@ MESSAGE_TAGS = {messages_constants.ERROR: "danger"}
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+# Arquivos estáticos (os do app ficam em app/static e são achados automaticamente).
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"  # destino do "collectstatic" em produção
+
+# Segurança extra em produção (com DEBUG=False o site deve rodar em HTTPS).
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
